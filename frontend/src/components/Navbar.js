@@ -23,9 +23,9 @@ const Navbar = () => {
         <div className="flex items-center justify-between">
           {/* Logo with Icon */}
           <Link to="/" className="flex items-center space-x-3">
-            <div className="w-12 h-12 rounded-lg overflow-hidden border-2 border-red-600">
+            <div className="w-12 h-12 rounded-lg overflow-hidden border-2 border-red-600 bg-black">
               <img 
-                src="/logo-icon.jpg" 
+                src="/tactical-logo.jpg" 
                 alt="The Watchen Place" 
                 className="w-full h-full object-cover"
               />
