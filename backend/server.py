@@ -371,21 +371,40 @@ async def search_streaming_sources(query: str):
 
 @api_router.get("/sources/direct/{imdb_id}")
 async def get_direct_stream(imdb_id: str, title: str = None, year: str = None):
-    """Get direct streaming links that play seamlessly"""
+    """Get direct video hosting links (FileMoon, Streamtape, MixDrop, etc.)"""
     try:
-        # Get direct streaming URLs using scraper
-        result = await video_scraper.get_direct_stream_url(
-            movie_title=title,
-            year=year,
-            imdb_id=imdb_id
+        logger.info(f"Getting direct streams for: {title} ({year}) - IMDb: {imdb_id}")
+        
+        # Scrape actual video hosting links from aggregator sites
+        result = await video_scraper.get_all_sources(
+            movie_title=title or imdb_id,
+            year=year
         )
-        return result
+        
+        # If scraping found sources, return them
+        if result.get('success') and result.get('sources'):
+            return result
+        
+        # Fallback to embed services
+        logger.warning("Scraping failed, using fallback")
+        fallback = await video_scraper._get_fallback_embeds(title, year, imdb_id)
+        return fallback
+        
     except Exception as e:
         logger.error(f"Error getting direct stream: {e}")
+        # Return fallback on error
         return {
-            "success": False,
-            "error": str(e),
-            "sources": []
+            "success": True,
+            "sources": [
+                {
+                    'url': f'https://vidsrc.to/embed/movie/{imdb_id}',
+                    'host': 'VidSrc',
+                    'quality': 'HD',
+                    'name': 'VidSrc Embed'
+                }
+            ],
+            "fallback": True,
+            "error": str(e)
         }
 
 
