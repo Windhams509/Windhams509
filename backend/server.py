@@ -738,6 +738,201 @@ async def delete_repository(
     return {"message": "Repository deleted successfully"}
 
 
+# ==================== USER PREFERENCES ROUTES ====================
+
+@api_router.put("/user/preferences/subtitles")
+async def update_subtitle_settings(
+    settings: SubtitleSettings,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Update subtitle preferences"""
+    update_fields = {k: v for k, v in settings.model_dump().items() if v is not None}
+    
+    if update_fields:
+        await db.users.update_one(
+            {"id": current_user.user_id},
+            {"$set": update_fields}
+        )
+    
+    return {"message": "Subtitle settings updated successfully"}
+
+
+@api_router.post("/user/preferences/subtitle-service")
+async def connect_subtitle_service(
+    service: SubtitleServiceConnect,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Connect subtitle service account"""
+    service_name = service.service_name.lower()
+    
+    update_fields = {}
+    if service_name == "opensubtitles":
+        if service.username:
+            update_fields["opensubtitles_username"] = service.username
+        if service.password:
+            update_fields["opensubtitles_password"] = hash_password(service.password)
+    elif service_name == "subscene":
+        if service.username:
+            update_fields["subscene_username"] = service.username
+    elif service_name == "addic7ed":
+        if service.username:
+            update_fields["addic7ed_username"] = service.username
+        if service.password:
+            update_fields["addic7ed_password"] = hash_password(service.password)
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Unknown subtitle service"
+        )
+    
+    if update_fields:
+        await db.users.update_one(
+            {"id": current_user.user_id},
+            {"$set": update_fields}
+        )
+    
+    return {"message": f"{service_name} connected successfully"}
+
+
+@api_router.put("/user/preferences/playback")
+async def update_playback_settings(
+    settings: PlaybackSettings,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Update playback preferences"""
+    update_fields = {k: v for k, v in settings.model_dump().items() if v is not None}
+    
+    if update_fields:
+        await db.users.update_one(
+            {"id": current_user.user_id},
+            {"$set": update_fields}
+        )
+    
+    return {"message": "Playback settings updated successfully"}
+
+
+@api_router.put("/user/preferences/appearance")
+async def update_appearance_settings(
+    settings: AppearanceSettings,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Update appearance preferences"""
+    update_fields = {k: v for k, v in settings.model_dump().items() if v is not None}
+    
+    if update_fields:
+        await db.users.update_one(
+            {"id": current_user.user_id},
+            {"$set": update_fields}
+        )
+    
+    return {"message": "Appearance settings updated successfully"}
+
+
+@api_router.put("/user/preferences/privacy")
+async def update_privacy_settings(
+    settings: PrivacySettings,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Update privacy preferences"""
+    update_fields = {k: v for k, v in settings.model_dump().items() if v is not None}
+    
+    if update_fields:
+        await db.users.update_one(
+            {"id": current_user.user_id},
+            {"$set": update_fields}
+        )
+    
+    return {"message": "Privacy settings updated successfully"}
+
+
+@api_router.put("/user/preferences/content")
+async def update_content_preferences(
+    settings: ContentPreferences,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Update content preferences"""
+    update_fields = {k: v for k, v in settings.model_dump().items() if v is not None}
+    
+    if update_fields:
+        await db.users.update_one(
+            {"id": current_user.user_id},
+            {"$set": update_fields}
+        )
+    
+    return {"message": "Content preferences updated successfully"}
+
+
+@api_router.get("/user/preferences")
+async def get_user_preferences(current_user: TokenData = Depends(get_current_user)):
+    """Get all user preferences"""
+    user = await db.users.find_one({"id": current_user.user_id})
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    return {
+        "subtitles": {
+            "language": user.get("subtitle_language", "en"),
+            "size": user.get("subtitle_size", "medium"),
+            "color": user.get("subtitle_color", "#FFFFFF"),
+            "background": user.get("subtitle_background", "rgba(0,0,0,0.7)"),
+            "delay": user.get("subtitle_delay", 0),
+            "auto_load": user.get("auto_load_subtitles", True),
+            "services": {
+                "opensubtitles": bool(user.get("opensubtitles_username")),
+                "subscene": bool(user.get("subscene_username")),
+                "addic7ed": bool(user.get("addic7ed_username"))
+            }
+        },
+        "playback": {
+            "quality": user.get("default_quality", "auto"),
+            "autoplay_next": user.get("autoplay_next", True),
+            "skip_intro": user.get("skip_intro_duration", 85),
+            "hardware_acceleration": user.get("hardware_acceleration", True),
+            "buffer_size": user.get("buffer_size", "medium")
+        },
+        "appearance": {
+            "theme": user.get("theme", "dark"),
+            "accent_color": user.get("accent_color", "#DC2626"),
+            "poster_size": user.get("poster_size", "medium"),
+            "view_mode": user.get("view_mode", "grid")
+        },
+        "privacy": {
+            "track_history": user.get("track_watch_history", True),
+            "show_continue_watching": user.get("show_continue_watching", True),
+            "auto_logout_minutes": user.get("auto_logout_minutes", 0)
+        },
+        "content": {
+            "language": user.get("preferred_language", "en"),
+            "hide_genres": user.get("hide_genres", []),
+            "maturity_filter": user.get("maturity_filter", "all")
+        }
+    }
+
+
+@api_router.delete("/user/data/clear-history")
+async def clear_watch_history(current_user: TokenData = Depends(get_current_user)):
+    """Clear all watch history"""
+    result = await db.watch_history.delete_many({"user_id": current_user.user_id})
+    return {"message": f"Cleared {result.deleted_count} history items"}
+
+
+@api_router.delete("/user/data/delete-account")
+async def delete_user_account(current_user: TokenData = Depends(get_current_user)):
+    """Delete user account and all associated data"""
+    # Delete all user data
+    await db.users.delete_one({"id": current_user.user_id})
+    await db.watchlist.delete_many({"user_id": current_user.user_id})
+    await db.favorites.delete_many({"user_id": current_user.user_id})
+    await db.watch_history.delete_many({"user_id": current_user.user_id})
+    await db.repositories.delete_many({"user_id": current_user.user_id})
+    
+    return {"message": "Account deleted successfully"}
+
+
+
 
 # ==================== CONTENT DISCOVERY ROUTES ====================
 
