@@ -106,6 +106,70 @@ const Settings = () => {
     setTimeout(() => setMessage({ type: '', text: '' }), 5000);
   };
 
+
+  const loadUserPreferences = async () => {
+    try {
+      const response = await api.get('/user/preferences');
+      const prefs = response.data;
+      
+      // Load subtitle settings
+      if (prefs.subtitles) {
+        setSubtitleSettings({
+          language: prefs.subtitles.language || 'en',
+          size: prefs.subtitles.size || 'medium',
+          color: prefs.subtitles.color || '#FFFFFF',
+          background: prefs.subtitles.background || 'rgba(0,0,0,0.7)',
+          delay: prefs.subtitles.delay || 0,
+          auto_load: prefs.subtitles.auto_load !== false
+        });
+        setSubtitleServices(prefs.subtitles.services || {});
+      }
+      
+      // Load playback settings
+      if (prefs.playback) {
+        setPlaybackSettings({
+          quality: prefs.playback.quality || 'auto',
+          autoplay_next: prefs.playback.autoplay_next !== false,
+          skip_intro: prefs.playback.skip_intro || 85,
+          hardware_acceleration: prefs.playback.hardware_acceleration !== false,
+          buffer_size: prefs.playback.buffer_size || 'medium'
+        });
+      }
+      
+      // Load appearance settings
+      if (prefs.appearance) {
+        setAppearanceSettings({
+          theme: prefs.appearance.theme || 'dark',
+          accent_color: prefs.appearance.accent_color || '#DC2626',
+          poster_size: prefs.appearance.poster_size || 'medium',
+          view_mode: prefs.appearance.view_mode || 'grid'
+        });
+      }
+      
+      // Load privacy settings
+      if (prefs.privacy) {
+        setPrivacySettings({
+          track_history: prefs.privacy.track_history !== false,
+          show_continue_watching: prefs.privacy.show_continue_watching !== false,
+          auto_logout_minutes: prefs.privacy.auto_logout_minutes || 0
+        });
+      }
+      
+      // Load content preferences
+      if (prefs.content) {
+        setContentPreferences({
+          language: prefs.content.language || 'en',
+          hide_genres: prefs.content.hide_genres || [],
+          maturity_filter: prefs.content.maturity_filter || 'all'
+        });
+      }
+    } catch (error) {
+      console.error('Failed to load user preferences:', error);
+      // Don't show error to user, just use defaults
+    }
+  };
+
+
   // ==================== ACCOUNT MANAGEMENT ====================
   
   const handleUpdateProfile = async (e) => {
