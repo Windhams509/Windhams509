@@ -125,6 +125,32 @@ class WatchlistItem(BaseModel):
     added_at: datetime = Field(default_factory=datetime.utcnow)
 
 
+
+
+# Password Reset & 2FA Models
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
+
+
+class Enable2FA(BaseModel):
+    method: str  # email, sms, authenticator
+    phone_number: Optional[str] = None
+
+
+class Verify2FA(BaseModel):
+    code: str
+
+
+class TwoFactorSettings(BaseModel):
+    enabled: bool
+    method: Optional[str] = None
+
+
 # Watch History Models
 class WatchHistory(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
