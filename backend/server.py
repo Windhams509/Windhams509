@@ -25,7 +25,8 @@ from models import (
     AppearanceSettings, PrivacySettings, ContentPreferences, BrowserSettings,
     DownloadRequest, Download, DownloadUpdate,
     Profile, CreateProfile, ParentalControls, ScreenTimeSettings, 
-    ScreenTimeLog, ProfileActivity
+    ScreenTimeLog, ProfileActivity,
+    ContentApprovalRequest, ApprovalResponse, ParentNotification
 )
 from auth import (
     hash_password, verify_password, create_access_token,
