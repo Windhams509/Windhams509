@@ -128,11 +128,34 @@ async def get_current_user_info(current_user: TokenData = Depends(get_current_us
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
+    # Build connected services map
+    connected_services = {
+        "trakt": bool(user.get("trakt_access_token")),
+        "tmdb": bool(user.get("tmdb_api_key")),
+        "omdb": bool(user.get("omdb_api_key")),
+        "imdb": bool(user.get("imdb_api_key")),
+        "tvdb": bool(user.get("tvdb_api_key")),
+        "fanart": bool(user.get("fanart_api_key")),
+        "mdblist": bool(user.get("mdblist_api_key")),
+        "real_debrid": bool(user.get("real_debrid_api_key")),
+        "all_debrid": bool(user.get("all_debrid_api_key")),
+        "premiumize": bool(user.get("premiumize_api_key")),
+        "torbox": bool(user.get("torbox_api_key")),
+        "debrid_link": bool(user.get("debrid_link_api_key")),
+        "plex": bool(user.get("plex_token")),
+        "emby": bool(user.get("emby_api_key")),
+        "jellyfin": bool(user.get("jellyfin_api_key")),
+        "simkl": bool(user.get("simkl_access_token")),
+        "kitsu": bool(user.get("kitsu_access_token")),
+        "anilist": bool(user.get("anilist_access_token")),
+    }
+    
     return UserResponse(
         id=user["id"],
         email=user["email"],
         name=user.get("name"),
-        adult_pin_enabled=user.get("adult_pin_enabled", False)
+        adult_pin_enabled=user.get("adult_pin_enabled", False),
+        connected_services=connected_services
     )
 
 
