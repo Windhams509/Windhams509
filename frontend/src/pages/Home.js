@@ -3,6 +3,7 @@ import { contentAPI } from '../utils/api';
 import { Link } from 'react-router-dom';
 import { getPosterUrl, getTitle, getPoster, getRating } from '../utils/tmdbHelpers';
 import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 
 const Home = () => {
   const [trending, setTrending] = useState([]);
