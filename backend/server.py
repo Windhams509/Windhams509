@@ -19,7 +19,9 @@ from models import (
     PINCreate, PINVerify, AddToWatchlistRequest, UpdateProgressRequest,
     ContentSearchRequest, UpdateProfile, ChangePassword, UpdatePIN,
     ConnectService, DisconnectService, AddRepository, Repository, ToggleRepository,
-    DeviceCodeRequest, DeviceCodeResponse, DeviceCodePoll
+    DeviceCodeRequest, DeviceCodeResponse, DeviceCodePoll,
+    SubtitleSettings, SubtitleServiceConnect, PlaybackSettings,
+    AppearanceSettings, PrivacySettings, ContentPreferences
 )
 from auth import (
     hash_password, verify_password, create_access_token,
