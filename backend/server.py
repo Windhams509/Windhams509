@@ -26,6 +26,7 @@ from api_clients import (
     tmdb_client, omdb_client, mdblist_client,
     fanart_client, filepursuit_client, rapidapi_movie_db, imdb_client
 )
+from video_scraper import video_scraper
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
