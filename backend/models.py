@@ -194,6 +194,51 @@ class Repository(BaseModel):
     added_at: datetime = Field(default_factory=datetime.utcnow)
 
 
+
+
+# User Preferences Update Models
+class SubtitleSettings(BaseModel):
+    subtitle_language: Optional[str] = None
+    subtitle_size: Optional[str] = None
+    subtitle_color: Optional[str] = None
+    subtitle_background: Optional[str] = None
+    subtitle_delay: Optional[int] = None
+    auto_load_subtitles: Optional[bool] = None
+
+
+class SubtitleServiceConnect(BaseModel):
+    service_name: str  # opensubtitles, subscene, addic7ed
+    username: Optional[str] = None
+    password: Optional[str] = None
+
+
+class PlaybackSettings(BaseModel):
+    default_quality: Optional[str] = None
+    autoplay_next: Optional[bool] = None
+    skip_intro_duration: Optional[int] = None
+    hardware_acceleration: Optional[bool] = None
+    buffer_size: Optional[str] = None
+
+
+class AppearanceSettings(BaseModel):
+    theme: Optional[str] = None
+    accent_color: Optional[str] = None
+    poster_size: Optional[str] = None
+    view_mode: Optional[str] = None
+
+
+class PrivacySettings(BaseModel):
+    track_watch_history: Optional[bool] = None
+    show_continue_watching: Optional[bool] = None
+    auto_logout_minutes: Optional[int] = None
+
+
+class ContentPreferences(BaseModel):
+    preferred_language: Optional[str] = None
+    hide_genres: Optional[List[str]] = None
+    maturity_filter: Optional[str] = None
+
+
 # Content Request/Response Models
 class ContentSearchRequest(BaseModel):
     query: str
