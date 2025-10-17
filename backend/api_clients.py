@@ -32,6 +32,7 @@ class TMDBClient:
         self.api_key = os.getenv('TMDB_API_KEY')
         # Check if it's a v4 Bearer token (longer format) or v3 API key
         self.is_bearer_token = len(self.api_key) > 32 if self.api_key else False
+        logger.info(f"TMDB Client initialized. Key length: {len(self.api_key) if self.api_key else 0}, Is Bearer: {self.is_bearer_token}")
     
     def _get_headers(self):
         """Get headers for API requests"""
