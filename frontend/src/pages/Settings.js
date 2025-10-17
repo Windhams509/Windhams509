@@ -414,19 +414,6 @@ const Settings = () => {
       { name: 'anilist', label: 'AniList', description: 'Anime & manga tracking', supportsDeviceCode: false }
     ]
   };
-      { name: 'debrid_link', label: 'Debrid-Link', description: 'Premium link service' }
-    ],
-    'Media Servers': [
-      { name: 'plex', label: 'Plex', description: 'Stream your own media' },
-      { name: 'emby', label: 'Emby', description: 'Personal media server' },
-      { name: 'jellyfin', label: 'Jellyfin', description: 'Free media system' }
-    ],
-    'Other Services': [
-      { name: 'simkl', label: 'Simkl', description: 'Track shows & movies' },
-      { name: 'kitsu', label: 'Kitsu', description: 'Anime tracking' },
-      { name: 'anilist', label: 'AniList', description: 'Anime & manga tracking' }
-    ]
-  };
 
   // ==================== RENDER ====================
 
