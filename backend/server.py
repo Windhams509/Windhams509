@@ -1187,6 +1187,44 @@ async def get_recommendations(current_user: TokenData = Depends(get_current_user
 
 
 
+@api_router.get("/content/continue-watching")
+async def get_continue_watching(current_user: TokenData = Depends(get_current_user)):
+    """Get continue watching list (in-progress content)"""
+    try:
+        # Get user's watch history with progress < 95%
+        history = await db.watch_history.find({
+            "user_id": current_user.user_id,
+            "progress": {"$gt": 5, "$lt": 95}  # Between 5% and 95%
+        }).sort("last_watched", -1).limit(20).to_list(20)
+        
+        # Remove MongoDB ObjectId fields
+        for item in history:
+            if "_id" in item:
+                del item["_id"]
+        
+        # Enrich with full data
+        enriched = []
+        for item in history:
+            content_id = item.get("content_id")
+            if content_id:
+                try:
+                    movie_data = await enrich_movie_data(content_id)
+                    movie_data["progress"] = item.get("progress", 0)
+                    movie_data["last_watched"] = item.get("last_watched")
+                    enriched.append(movie_data)
+                except Exception as e:
+                    logger.error(f"Error enriching continue watching item: {e}")
+                    enriched.append(item)  # Add original if enrichment fails
+        
+        return {"results": enriched}
+        
+    except Exception as e:
+        logger.error(f"Error getting continue watching: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get continue watching")
+
+
+
+
 # ==================== STREAMING SOURCES ROUTES ====================
 
 @api_router.get("/sources/search")
