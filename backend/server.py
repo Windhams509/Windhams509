@@ -188,39 +188,29 @@ async def disable_adult_pin(current_user: TokenData = Depends(get_current_user))
 
 @api_router.get("/content/trending")
 async def get_trending(media_type: str = "all", time_window: str = "week"):
-    """Get trending content - Using popular titles as trending"""
+    """Get trending content with real poster data"""
     try:
-        # Since TMDB isn't working, return curated popular content
-        # These are well-known popular movies/shows
-        trending_movies = [
-            {"id": "tt0111161", "title": "The Shawshank Redemption", "year": "1994", "type": "movie", "imdbID": "tt0111161"},
-            {"id": "tt0068646", "title": "The Godfather", "year": "1972", "type": "movie", "imdbID": "tt0068646"},
-            {"id": "tt0468569", "title": "The Dark Knight", "year": "2008", "type": "movie", "imdbID": "tt0468569"},
-            {"id": "tt0110912", "title": "Pulp Fiction", "year": "1994", "type": "movie", "imdbID": "tt0110912"},
-            {"id": "tt0109830", "title": "Forrest Gump", "year": "1994", "type": "movie", "imdbID": "tt0109830"},
-            {"id": "tt0120737", "title": "The Lord of the Rings: The Fellowship of the Ring", "year": "2001", "type": "movie", "imdbID": "tt0120737"},
-            {"id": "tt0137523", "title": "Fight Club", "year": "1999", "type": "movie", "imdbID": "tt0137523"},
-            {"id": "tt0816692", "title": "Interstellar", "year": "2014", "type": "movie", "imdbID": "tt0816692"},
-            {"id": "tt1375666", "title": "Inception", "year": "2010", "type": "movie", "imdbID": "tt1375666"},
-            {"id": "tt0133093", "title": "The Matrix", "year": "1999", "type": "movie", "imdbID": "tt0133093"},
+        # Curated popular IMDb IDs
+        trending_ids = [
+            "tt0111161",  # Shawshank Redemption
+            "tt0068646",  # The Godfather
+            "tt0468569",  # The Dark Knight
+            "tt0110912",  # Pulp Fiction
+            "tt1375666",  # Inception
+            "tt0137523",  # Fight Club
+            "tt0133093",  # The Matrix
+            "tt0109830",  # Forrest Gump
+            "tt0816692",  # Interstellar
+            "tt0120737",  # LOTR
         ]
         
-        trending_tv = [
-            {"id": "tt0903747", "title": "Breaking Bad", "year": "2008–2013", "type": "series", "imdbID": "tt0903747"},
-            {"id": "tt0944947", "title": "Game of Thrones", "year": "2011–2019", "type": "series", "imdbID": "tt0944947"},
-            {"id": "tt1475582", "title": "Sherlock", "year": "2010–2017", "type": "series", "imdbID": "tt1475582"},
-            {"id": "tt0386676", "title": "The Office", "year": "2005–2013", "type": "series", "imdbID": "tt0386676"},
-            {"id": "tt0773262", "title": "Dexter", "year": "2006–2013", "type": "series", "imdbID": "tt0773262"},
-        ]
+        # Fetch real data with posters for each movie
+        results = []
+        for imdb_id in trending_ids[:10]:  # Limit to 10 to avoid rate limits
+            movie_data = await enrich_movie_data(imdb_id)
+            results.append(movie_data)
         
-        if media_type == "movie":
-            results = trending_movies
-        elif media_type == "tv":
-            results = trending_tv
-        else:
-            results = trending_movies + trending_tv
-        
-        return {"results": results, "source": "curated"}
+        return {"results": results, "source": "omdb_enriched"}
     except Exception as e:
         logger.error(f"Error fetching trending: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch trending content")
