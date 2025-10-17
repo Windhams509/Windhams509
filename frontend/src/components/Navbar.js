@@ -22,8 +22,11 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-8 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="text-3xl font-bold text-white">
-            Stream<span className="text-red-600">Flix</span>
+          <Link to="/" className="flex flex-col">
+            <span className="text-3xl font-bold text-white">
+              The <span className="text-red-600">Watchen</span> Place
+            </span>
+            <span className="text-xs text-gray-400 italic">by The Gettin Place</span>
           </Link>
 
           {/* Search */}
