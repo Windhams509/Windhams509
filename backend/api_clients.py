@@ -61,7 +61,8 @@ class TMDBClient:
         async with httpx.AsyncClient() as client:
             response = await client.get(
                 f"{self.BASE_URL}/search/tv",
-                params={"api_key": self.api_key, "query": query, "page": page}
+                params=self._get_params({"query": query, "page": page}),
+                headers=self._get_headers()
             )
             return response.json()
     
@@ -70,7 +71,8 @@ class TMDBClient:
         async with httpx.AsyncClient() as client:
             response = await client.get(
                 f"{self.BASE_URL}/movie/{movie_id}",
-                params={"api_key": self.api_key, "append_to_response": "videos,credits,similar"}
+                params=self._get_params({"append_to_response": "videos,credits,similar"}),
+                headers=self._get_headers()
             )
             return response.json()
     
@@ -79,7 +81,8 @@ class TMDBClient:
         async with httpx.AsyncClient() as client:
             response = await client.get(
                 f"{self.BASE_URL}/tv/{tv_id}",
-                params={"api_key": self.api_key, "append_to_response": "videos,credits,similar"}
+                params=self._get_params({"append_to_response": "videos,credits,similar"}),
+                headers=self._get_headers()
             )
             return response.json()
     
@@ -88,36 +91,37 @@ class TMDBClient:
         async with httpx.AsyncClient() as client:
             response = await client.get(
                 f"{self.BASE_URL}/trending/{media_type}/{time_window}",
-                params={"api_key": self.api_key}
+                params=self._get_params(),
+                headers=self._get_headers()
             )
             return response.json()
     
     async def discover_movies(self, genre: Optional[int] = None, page: int = 1, sort_by: str = "popularity.desc") -> Dict[str, Any]:
         """Discover movies with filters"""
-        params = {
-            "api_key": self.api_key,
-            "sort_by": sort_by,
-            "page": page
-        }
+        params = {"sort_by": sort_by, "page": page}
         if genre:
             params["with_genres"] = genre
         
         async with httpx.AsyncClient() as client:
-            response = await client.get(f"{self.BASE_URL}/discover/movie", params=params)
+            response = await client.get(
+                f"{self.BASE_URL}/discover/movie",
+                params=self._get_params(params),
+                headers=self._get_headers()
+            )
             return response.json()
     
     async def discover_tv(self, genre: Optional[int] = None, page: int = 1, sort_by: str = "popularity.desc") -> Dict[str, Any]:
         """Discover TV shows with filters"""
-        params = {
-            "api_key": self.api_key,
-            "sort_by": sort_by,
-            "page": page
-        }
+        params = {"sort_by": sort_by, "page": page}
         if genre:
             params["with_genres"] = genre
         
         async with httpx.AsyncClient() as client:
-            response = await client.get(f"{self.BASE_URL}/discover/tv", params=params)
+            response = await client.get(
+                f"{self.BASE_URL}/discover/tv",
+                params=self._get_params(params),
+                headers=self._get_headers()
+            )
             return response.json()
     
     async def get_genres(self, media_type: str = "movie") -> Dict[str, Any]:
@@ -125,7 +129,8 @@ class TMDBClient:
         async with httpx.AsyncClient() as client:
             response = await client.get(
                 f"{self.BASE_URL}/genre/{media_type}/list",
-                params={"api_key": self.api_key}
+                params=self._get_params(),
+                headers=self._get_headers()
             )
             return response.json()
 
