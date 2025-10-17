@@ -135,3 +135,18 @@ class UpdateProgressRequest(BaseModel):
     poster_path: Optional[str] = None
     progress: float
     duration: Optional[int] = None
+
+
+# PIN Models
+class PINCreate(BaseModel):
+    pin: str  # 4-digit PIN
+
+
+class PINVerify(BaseModel):
+    pin: str  # 4-digit PIN to verify
+
+
+# Update Settings Models
+class UpdatePIN(BaseModel):
+    current_pin: Optional[str] = None
+    new_pin: str  # 4-digit PIN
