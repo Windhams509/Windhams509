@@ -133,6 +133,8 @@ const Home = () => {
         <ContentRow title="Popular Movies" items={movies} />
         <ContentRow title="Popular TV Shows" items={tvShows} />
       </div>
+
+      <Footer />
     </div>
   );
 };
