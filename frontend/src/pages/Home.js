@@ -80,13 +80,13 @@ const Home = () => {
   const loadProductionContent = async () => {
     try {
       // Search for production company content
-      const [millsshot, gamma, adultTime] = await Promise.all([
-        contentAPI.search('Millsshot Productions'),
+      const [breeMills, gamma, adultTime] = await Promise.all([
+        contentAPI.search('Bree Mills'),
         contentAPI.search('Gamma Productions'),
         contentAPI.search('Adult Time'),
       ]);
 
-      setMillsshotContent(millsshot.data.results?.slice(0, 20) || []);
+      setBreeMillsContent(breeMills.data.results?.slice(0, 20) || []);
       setGammaContent(gamma.data.results?.slice(0, 20) || []);
       setAdultTimeContent(adultTime.data.results?.slice(0, 20) || []);
     } catch (error) {
