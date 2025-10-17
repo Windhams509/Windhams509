@@ -17,7 +17,8 @@ from models import (
     WatchlistItem, WatchHistory, Favorite,
     PINCreate, PINVerify, AddToWatchlistRequest, UpdateProgressRequest,
     ContentSearchRequest, UpdateProfile, ChangePassword, UpdatePIN,
-    ConnectService, DisconnectService, AddRepository, Repository, ToggleRepository
+    ConnectService, DisconnectService, AddRepository, Repository, ToggleRepository,
+    DeviceCodeRequest, DeviceCodeResponse, DeviceCodePoll
 )
 from auth import (
     hash_password, verify_password, create_access_token,
