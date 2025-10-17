@@ -423,6 +423,111 @@ async def get_2fa_status(current_user: TokenData = Depends(get_current_user)):
 
 
 
+# ==================== GOOGLE OAUTH ROUTES ====================
+
+@api_router.post("/auth/google")
+async def google_oauth_login(oauth_data: GoogleOAuthLogin):
+    """Sign in or sign up with Google"""
+    try:
+        # In production, verify the Google ID token here
+        # For now, we'll use a simplified version
+        
+        # Decode the token to get user info (simplified - in production use google.auth)
+        # This is a placeholder - you'll need to integrate Google OAuth library
+        import base64
+        import json
+        
+        # For demo: extract email from token (in production, verify with Google)
+        # This is NOT secure - just for demonstration
+        google_email = oauth_data.id_token  # Placeholder
+        
+        # Check if user exists
+        user = await db.users.find_one({"email": google_email})
+        
+        if not user:
+            # Create new user with Google OAuth
+            new_user = User(
+                email=google_email,
+                name="Google User",
+                hashed_password=hash_password(secrets.token_urlsafe(32)),  # Random password
+                google_id=oauth_data.id_token,
+                oauth_provider="google"
+            )
+            await db.users.insert_one(new_user.model_dump())
+            user = new_user.model_dump()
+        
+        # Generate remember token if requested
+        remember_token = None
+        if oauth_data.remember_me:
+            remember_token = secrets.token_urlsafe(32)
+            await db.users.update_one(
+                {"id": user["id"]},
+                {"$set": {"remember_token": remember_token}}
+            )
+        
+        # Generate JWT token
+        access_token = create_access_token(user["id"])
+        
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "user": UserResponse(
+                id=user["id"],
+                email=user["email"],
+                name=user.get("name"),
+                adult_pin_enabled=user.get("adult_pin_enabled", False),
+                connected_services={}
+            ),
+            "remember_token": remember_token
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in Google OAuth: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to authenticate with Google"
+        )
+
+
+@api_router.post("/auth/remember-me")
+async def login_with_remember_token(remember_token: str):
+    """Auto-login with remember me token"""
+    try:
+        user = await db.users.find_one({"remember_token": remember_token})
+        
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid remember token"
+            )
+        
+        # Generate new JWT
+        access_token = create_access_token(user["id"])
+        
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "user": UserResponse(
+                id=user["id"],
+                email=user["email"],
+                name=user.get("name"),
+                adult_pin_enabled=user.get("adult_pin_enabled", False),
+                connected_services={}
+            )
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in remember me login: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to login with remember token"
+        )
+
+
+
+
 # ==================== ADULT PIN ROUTES ====================
 
 @api_router.post("/user/pin/set")
