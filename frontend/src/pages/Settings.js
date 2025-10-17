@@ -345,19 +345,32 @@ const Settings = () => {
   
   const serviceCategories = {
     'Content Databases': [
-      { name: 'trakt', label: 'Trakt', description: 'Track your viewing history' },
-      { name: 'tmdb', label: 'TMDb', description: 'The Movie Database API' },
-      { name: 'omdb', label: 'OMDb', description: 'Open Movie Database' },
-      { name: 'imdb', label: 'IMDb', description: 'Internet Movie Database API' },
-      { name: 'tvdb', label: 'TVDb', description: 'The TV Database' },
-      { name: 'fanart', label: 'Fanart.tv', description: 'High quality artwork' },
-      { name: 'mdblist', label: 'MDBList', description: 'Movie & TV list aggregator' }
+      { name: 'trakt', label: 'Trakt', description: 'Track your viewing history', supportsDeviceCode: true },
+      { name: 'tmdb', label: 'TMDb', description: 'The Movie Database API', supportsDeviceCode: false },
+      { name: 'omdb', label: 'OMDb', description: 'Open Movie Database', supportsDeviceCode: false },
+      { name: 'imdb', label: 'IMDb', description: 'Internet Movie Database API', supportsDeviceCode: false },
+      { name: 'tvdb', label: 'TVDb', description: 'The TV Database', supportsDeviceCode: false },
+      { name: 'fanart', label: 'Fanart.tv', description: 'High quality artwork', supportsDeviceCode: false },
+      { name: 'mdblist', label: 'MDBList', description: 'Movie & TV list aggregator', supportsDeviceCode: false }
     ],
     'Debrid Services': [
-      { name: 'real_debrid', label: 'Real-Debrid', description: 'Premium link generator' },
-      { name: 'all_debrid', label: 'AllDebrid', description: 'Multi-hoster downloader' },
-      { name: 'premiumize', label: 'Premiumize', description: 'Cloud storage & debrid' },
-      { name: 'torbox', label: 'Torbox', description: 'Seedbox & debrid service' },
+      { name: 'real_debrid', label: 'Real-Debrid', description: 'Premium link generator', supportsDeviceCode: true },
+      { name: 'all_debrid', label: 'AllDebrid', description: 'Multi-hoster downloader', supportsDeviceCode: true },
+      { name: 'premiumize', label: 'Premiumize', description: 'Cloud storage & debrid', supportsDeviceCode: false },
+      { name: 'torbox', label: 'Torbox', description: 'Seedbox & debrid service', supportsDeviceCode: false },
+      { name: 'debrid_link', label: 'Debrid-Link', description: 'Premium link service', supportsDeviceCode: false }
+    ],
+    'Media Servers': [
+      { name: 'plex', label: 'Plex', description: 'Stream your own media', supportsDeviceCode: true },
+      { name: 'emby', label: 'Emby', description: 'Personal media server', supportsDeviceCode: false },
+      { name: 'jellyfin', label: 'Jellyfin', description: 'Free media system', supportsDeviceCode: false }
+    ],
+    'Other Services': [
+      { name: 'simkl', label: 'Simkl', description: 'Track shows & movies', supportsDeviceCode: true },
+      { name: 'kitsu', label: 'Kitsu', description: 'Anime tracking', supportsDeviceCode: false },
+      { name: 'anilist', label: 'AniList', description: 'Anime & manga tracking', supportsDeviceCode: false }
+    ]
+  };
       { name: 'debrid_link', label: 'Debrid-Link', description: 'Premium link service' }
     ],
     'Media Servers': [
