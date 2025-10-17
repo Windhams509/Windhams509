@@ -469,6 +469,198 @@ async def get_connected_services(current_user: TokenData = Depends(get_current_u
     return {"connected_services": connected}
 
 
+
+# ==================== DEVICE CODE AUTHENTICATION ====================
+
+@api_router.post("/user/device-auth/start", response_model=DeviceCodeResponse)
+async def start_device_auth(
+    request: DeviceCodeRequest,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Initiate device code authentication flow for supported services"""
+    import httpx
+    import secrets
+    
+    service_name = request.service_name.lower()
+    
+    # Service-specific OAuth configurations
+    oauth_configs = {
+        "trakt": {
+            "client_id": os.environ.get("TRAKT_CLIENT_ID", "demo_client_id"),
+            "device_url": "https://api.trakt.tv/oauth/device/code",
+            "verification_url": "https://trakt.tv/activate"
+        },
+        "plex": {
+            "client_id": os.environ.get("PLEX_CLIENT_ID", "demo_client_id"),
+            "device_url": "https://plex.tv/api/v2/pins",
+            "verification_url": "https://plex.tv/link"
+        },
+        "simkl": {
+            "client_id": os.environ.get("SIMKL_CLIENT_ID", "demo_client_id"),
+            "device_url": "https://api.simkl.com/oauth/pin",
+            "verification_url": "https://simkl.com/pin"
+        },
+        "realdebrid": {
+            "client_id": os.environ.get("REALDEBRID_CLIENT_ID", "demo_client_id"),
+            "device_url": "https://api.real-debrid.com/oauth/v2/device/code",
+            "verification_url": "https://real-debrid.com/device"
+        },
+        "alldebrid": {
+            "client_id": os.environ.get("ALLDEBRID_CLIENT_ID", "demo_client_id"),
+            "device_url": "https://api.alldebrid.com/v4/pin/get",
+            "verification_url": "https://alldebrid.com/pin"
+        }
+    }
+    
+    config = oauth_configs.get(service_name)
+    if not config:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Device code authentication not supported for {service_name}. Please use manual API key connection."
+        )
+    
+    try:
+        # Generate device code (simplified version - in production, call actual OAuth endpoints)
+        # For demo purposes, we'll generate mock codes
+        device_code = secrets.token_urlsafe(32)
+        user_code = ''.join(secrets.choice('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789') for _ in range(8))
+        user_code = f"{user_code[:4]}-{user_code[4:]}"  # Format: XXXX-XXXX
+        
+        # Store device code in database temporarily (expires in 10 minutes)
+        from datetime import datetime, timezone
+        await db.device_codes.insert_one({
+            "device_code": device_code,
+            "user_code": user_code,
+            "user_id": current_user.user_id,
+            "service_name": service_name,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "expires_at": (datetime.now(timezone.utc).timestamp() + 600),  # 10 minutes
+            "verified": False
+        })
+        
+        return DeviceCodeResponse(
+            device_code=device_code,
+            user_code=user_code,
+            verification_url=config["verification_url"],
+            expires_in=600,  # 10 minutes
+            interval=5  # Poll every 5 seconds
+        )
+        
+    except Exception as e:
+        logger.error(f"Error starting device auth for {service_name}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to initiate device authentication"
+        )
+
+
+@api_router.post("/user/device-auth/poll")
+async def poll_device_auth(
+    poll_request: DeviceCodePoll,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Poll to check if user has completed device authentication"""
+    from datetime import datetime, timezone
+    
+    # Check if device code exists and is not expired
+    device_code_doc = await db.device_codes.find_one({
+        "device_code": poll_request.device_code,
+        "user_id": current_user.user_id,
+        "service_name": poll_request.service_name.lower()
+    })
+    
+    if not device_code_doc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Device code not found or expired"
+        )
+    
+    # Check if expired
+    if datetime.now(timezone.utc).timestamp() > device_code_doc["expires_at"]:
+        await db.device_codes.delete_one({"device_code": poll_request.device_code})
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Device code expired"
+        )
+    
+    # Check if verified
+    if device_code_doc.get("verified"):
+        # Get the access token
+        access_token = device_code_doc.get("access_token", "demo_access_token_" + poll_request.service_name)
+        
+        # Store in user's connected services
+        service_field_map = {
+            "trakt": "trakt_access_token",
+            "plex": "plex_token",
+            "simkl": "simkl_access_token",
+            "realdebrid": "real_debrid_api_key",
+            "alldebrid": "all_debrid_api_key",
+        }
+        
+        field_name = service_field_map.get(poll_request.service_name.lower())
+        if field_name:
+            await db.users.update_one(
+                {"id": current_user.user_id},
+                {"$set": {field_name: access_token}}
+            )
+        
+        # Clean up device code
+        await db.device_codes.delete_one({"device_code": poll_request.device_code})
+        
+        return {
+            "status": "authorized",
+            "message": f"{poll_request.service_name} connected successfully"
+        }
+    
+    # Still waiting for user to authorize
+    return {
+        "status": "pending",
+        "message": "Waiting for user authorization"
+    }
+
+
+@api_router.post("/user/device-auth/verify")
+async def verify_device_code(user_code: str):
+    """Verify device code (simulated endpoint - in production this would be on the service's website)"""
+    from datetime import datetime, timezone
+    
+    # This endpoint simulates what happens when user enters code on the service's website
+    # In production, this verification happens on the external service (Trakt, Plex, etc.)
+    
+    device_code_doc = await db.device_codes.find_one({"user_code": user_code.upper()})
+    
+    if not device_code_doc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Invalid code"
+        )
+    
+    # Check if expired
+    if datetime.now(timezone.utc).timestamp() > device_code_doc["expires_at"]:
+        await db.device_codes.delete_one({"user_code": user_code.upper()})
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Code expired"
+        )
+    
+    # Mark as verified and generate access token
+    access_token = f"demo_token_{device_code_doc['service_name']}_{secrets.token_urlsafe(16)}"
+    
+    await db.device_codes.update_one(
+        {"user_code": user_code.upper()},
+        {"$set": {
+            "verified": True,
+            "access_token": access_token,
+            "verified_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {
+        "message": "Authorization successful! You can close this window.",
+        "service": device_code_doc["service_name"]
+    }
+
+
 # ==================== REPOSITORY SYSTEM ROUTES ====================
 
 @api_router.post("/user/repositories")
