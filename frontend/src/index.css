@@ -113,3 +113,60 @@ code {
         border-bottom-color: inherit;
     }
 }
+
+
+/* Keyboard and Remote Control Navigation Styles */
+* {
+    scroll-behavior: smooth;
+}
+
+/* Enhanced focus styles for keyboard/remote navigation */
+*:focus {
+    outline: none;
+}
+
+a:focus, button:focus, input:focus, [tabindex]:focus {
+    outline: 3px solid #DC2626;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.3);
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+/* Smooth scroll for content rows */
+.overflow-x-auto {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Focus indicator for active elements */
+*:focus-visible {
+    outline: 3px solid #DC2626;
+    outline-offset: 3px;
+}
+
+/* Button focus states */
+button:focus-visible {
+    transform: scale(1.05);
+    transition: transform 0.2s ease;
+}
+
+/* Link hover and focus states */
+a:hover, a:focus {
+    text-decoration: none;
+}
+
+/* Ensure focus is visible on all interactive elements */
+input:focus, textarea:focus, select:focus {
+    border-color: #DC2626;
+    ring: 2px;
+    ring-color: #DC2626;
+}
