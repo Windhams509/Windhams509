@@ -27,7 +27,8 @@ from models import (
     Profile, CreateProfile, ParentalControls, ScreenTimeSettings, 
     ScreenTimeLog, ProfileActivity,
     ContentApprovalRequest, ApprovalResponse, ParentNotification,
-    ForgotPasswordRequest, ResetPasswordRequest, Enable2FA, Verify2FA, TwoFactorSettings
+    ForgotPasswordRequest, ResetPasswordRequest, Enable2FA, Verify2FA, TwoFactorSettings,
+    GoogleOAuthLogin, SubscriptionPlan, Coupon, PromotionalSale
 )
 from auth import (
     hash_password, verify_password, create_access_token,
