@@ -11,7 +11,8 @@ const MovieDetails = () => {
   const [movie, setMovie] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showPlayer, setShowPlayer] = useState(false);
-  const [selectedSource, setSelectedSource] = useState(null);
+  const [streamSources, setStreamSources] = useState([]);
+  const [loadingSources, setLoadingSources] = useState(false);
 
   useEffect(() => {
     loadMovieDetails();
