@@ -135,12 +135,12 @@ const VideoPlayer = ({ movie, sources, onClose }) => {
               📱 Watch on VLC Player (Best Quality)
             </h3>
             <ol className="text-gray-300 text-xs md:text-sm space-y-1 list-decimal list-inside">
-              <li>Click \"Copy URL\" button above</li>
+              <li>Click "Copy URL" button above</li>
               <li>Open VLC Media Player</li>
-              <li>Go to <span className=\"text-blue-400 font-mono\">Media → Open Network Stream</span></li>
+              <li>Go to <span className="text-blue-400 font-mono">Media → Open Network Stream</span></li>
               <li>Paste URL and click Play</li>
             </ol>
-            <p className=\"text-gray-400 text-xs mt-2\">
+            <p className="text-gray-400 text-xs mt-2">
               ✨ VLC provides better quality, subtitles, and playback controls
             </p>
           </div>
