@@ -82,13 +82,36 @@ class Favorite(BaseModel):
     added_at: datetime = Field(default_factory=datetime.utcnow)
 
 
-# Adult PIN Models
-class PINCreate(BaseModel):
-    pin: str
+# User Settings Models
+class UpdateProfile(BaseModel):
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
 
 
-class PINVerify(BaseModel):
-    pin: str
+class ChangePassword(BaseModel):
+    current_password: str
+    new_password: str
+
+
+class ConnectService(BaseModel):
+    service_name: str  # 'trakt', 'tmdb', 'omdb', 'imdb', 'real_debrid', etc.
+    api_key: str
+
+
+class AddRepository(BaseModel):
+    name: str
+    url: str
+    description: Optional[str] = None
+
+
+class Repository(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    name: str
+    url: str
+    description: Optional[str] = None
+    enabled: bool = True
+    added_at: datetime = Field(default_factory=datetime.utcnow)
 
 
 # Content Request/Response Models
