@@ -45,9 +45,9 @@ const Login = () => {
           <div className="text-center mb-8">
             {/* Logo Icon */}
             <div className="flex justify-center mb-4">
-              <div className="w-20 h-20 rounded-lg overflow-hidden border-2 border-red-600">
+              <div className="w-20 h-20 rounded-lg overflow-hidden border-2 border-red-600 bg-black">
                 <img 
-                  src="/logo-icon.jpg" 
+                  src="/tactical-logo.jpg" 
                   alt="The Watchen Place" 
                   className="w-full h-full object-cover"
                 />
