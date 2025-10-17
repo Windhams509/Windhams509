@@ -450,6 +450,57 @@ class ApprovalResponse(BaseModel):
     apply_to_profile: bool = False  # Update profile settings
 
 
+
+# Pricing & Subscription Models
+class SubscriptionPlan(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str  # Free, Basic, Premium, Family
+    price: float  # Monthly price
+    annual_price: Optional[float] = None  # Annual pricing
+    features: List[str] = Field(default_factory=list)
+    max_profiles: int = 1
+    max_downloads: int = 0  # 0 = unlimited
+    ads_enabled: bool = True
+    quality_limit: str = "720p"  # Max streaming quality
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class Coupon(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    code: str  # SUMMER2024, FAMILY50
+    discount_type: str  # percent, fixed
+    discount_value: float  # 50 (for 50% off) or 10.00 (for $10 off)
+    applies_to: List[str] = Field(default_factory=list)  # Empty = all plans
+    max_uses: Optional[int] = None  # None = unlimited
+    current_uses: int = 0
+    starts_at: datetime
+    expires_at: datetime
+    is_active: bool = True
+    created_by: str  # Admin user ID
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class PromotionalSale(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str  # "Black Friday Sale"
+    description: str
+    discount_percent: float  # 25 (for 25% off)
+    applies_to: List[str] = Field(default_factory=list)  # Plan IDs
+    starts_at: datetime
+    ends_at: datetime
+    is_active: bool = True
+    banner_text: Optional[str] = None  # "Save 25% this week!"
+    created_by: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class GoogleOAuthLogin(BaseModel):
+    id_token: str  # Google ID token
+    remember_me: bool = False
+
+
+
 class ParentNotification(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     user_id: str  # Parent account
