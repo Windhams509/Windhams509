@@ -9,6 +9,8 @@ const Home = () => {
   const [trending, setTrending] = useState([]);
   const [movies, setMovies] = useState([]);
   const [tvShows, setTVShows] = useState([]);
+  const [continueWatching, setContinueWatching] = useState([]);
+  const [recommendations, setRecommendations] = useState([]);
   const [millsshotContent, setMillsshotContent] = useState([]);
   const [gammaContent, setGammaContent] = useState([]);
   const [adultTimeContent, setAdultTimeContent] = useState([]);
