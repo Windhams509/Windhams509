@@ -84,6 +84,15 @@ class User(BaseModel):
     show_continue_watching: bool = True
     auto_logout_minutes: int = 0  # 0 = disabled
     
+    # Security Settings
+    two_factor_enabled: bool = False
+    two_factor_method: Optional[str] = None  # email, sms, authenticator
+    two_factor_secret: Optional[str] = None
+    phone_number: Optional[str] = None
+    backup_codes: List[str] = Field(default_factory=list)
+    password_reset_token: Optional[str] = None
+    password_reset_expires: Optional[datetime] = None
+    
     # Content Preferences
     preferred_language: str = "en"
     hide_genres: List[str] = Field(default_factory=list)
