@@ -25,6 +25,17 @@ class User(BaseModel):
     adult_pin: Optional[str] = None  # 4-digit PIN for adult content
     adult_pin_enabled: bool = False
     
+    # OAuth & Authentication
+    google_id: Optional[str] = None
+    oauth_provider: Optional[str] = None  # google, facebook, apple
+    remember_token: Optional[str] = None
+    
+    # Subscription & Pricing
+    subscription_tier: str = "free"  # free, basic, premium, family
+    subscription_status: str = "active"  # active, cancelled, expired
+    subscription_expires: Optional[datetime] = None
+    is_admin: bool = False
+    
     # External service connections - Content Databases
     trakt_access_token: Optional[str] = None
     tmdb_api_key: Optional[str] = None
