@@ -922,6 +922,11 @@ async def get_watch_history(current_user: TokenData = Depends(get_current_user))
         {"user_id": current_user.user_id, "progress": {"$lt": 95}}  # Less than 95% watched
     ).sort("last_watched", -1).limit(20).to_list(20)
     
+    # Remove MongoDB ObjectId fields to avoid serialization issues
+    for item in history:
+        if "_id" in item:
+            del item["_id"]
+    
     return history
 
 
