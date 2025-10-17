@@ -122,8 +122,8 @@ const VideoPlayer = ({ movie, sources, onClose }) => {
               onClick={handleOpenInVLC}
               className="flex items-center justify-center space-x-2 px-4 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition text-sm"
             >
-              <svg className="w-4 h-4" viewBox=\"0 0 24 24\" fill=\"currentColor\">
-                <path d=\"M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5\"/>
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
               </svg>
               <span>Open in VLC</span>
             </button>
