@@ -218,23 +218,27 @@ async def get_trending(media_type: str = "all", time_window: str = "week"):
 
 @api_router.get("/content/discover/movies")
 async def discover_movies(genre: Optional[int] = None, page: int = 1, sort_by: str = "popularity.desc"):
-    """Discover movies with filters"""
+    """Discover movies with real poster data"""
     try:
-        # Return popular movies by different genres/categories
-        action_movies = [
-            {"id": "tt0468569", "title": "The Dark Knight", "year": "2008", "type": "movie", "genre": "Action", "imdbID": "tt0468569"},
-            {"id": "tt0137523", "title": "Fight Club", "year": "1999", "type": "movie", "genre": "Action", "imdbID": "tt0137523"},
-            {"id": "tt0133093", "title": "The Matrix", "year": "1999", "type": "movie", "genre": "Action", "imdbID": "tt0133093"},
-            {"id": "tt0816692", "title": "Interstellar", "year": "2014", "type": "movie", "genre": "Sci-Fi", "imdbID": "tt0816692"},
-            {"id": "tt1375666", "title": "Inception", "year": "2010", "type": "movie", "genre": "Action", "imdbID": "tt1375666"},
-            {"id": "tt0109830", "title": "Forrest Gump", "year": "1994", "type": "movie", "genre": "Drama", "imdbID": "tt0109830"},
-            {"id": "tt0110912", "title": "Pulp Fiction", "year": "1994", "type": "movie", "genre": "Crime", "imdbID": "tt0110912"},
-            {"id": "tt0111161", "title": "The Shawshank Redemption", "year": "1994", "type": "movie", "genre": "Drama", "imdbID": "tt0111161"},
-            {"id": "tt0068646", "title": "The Godfather", "year": "1972", "type": "movie", "genre": "Crime", "imdbID": "tt0068646"},
-            {"id": "tt0120737", "title": "The Lord of the Rings", "year": "2001", "type": "movie", "genre": "Fantasy", "imdbID": "tt0120737"},
+        movie_ids = [
+            "tt0468569",  # The Dark Knight
+            "tt0137523",  # Fight Club
+            "tt0133093",  # The Matrix
+            "tt0816692",  # Interstellar
+            "tt1375666",  # Inception
+            "tt0109830",  # Forrest Gump
+            "tt0110912",  # Pulp Fiction
+            "tt0111161",  # Shawshank Redemption
+            "tt0068646",  # The Godfather
+            "tt0120737",  # LOTR
         ]
         
-        return {"results": action_movies, "source": "curated"}
+        results = []
+        for imdb_id in movie_ids:
+            movie_data = await enrich_movie_data(imdb_id)
+            results.append(movie_data)
+        
+        return {"results": results, "source": "omdb_enriched"}
     except Exception as e:
         logger.error(f"Error discovering movies: {e}")
         raise HTTPException(status_code=500, detail="Failed to discover movies")
@@ -242,20 +246,25 @@ async def discover_movies(genre: Optional[int] = None, page: int = 1, sort_by: s
 
 @api_router.get("/content/discover/tv")
 async def discover_tv(genre: Optional[int] = None, page: int = 1, sort_by: str = "popularity.desc"):
-    """Discover TV shows with filters"""
+    """Discover TV shows with real poster data"""
     try:
-        tv_shows = [
-            {"id": "tt0903747", "title": "Breaking Bad", "year": "2008–2013", "type": "series", "genre": "Drama", "imdbID": "tt0903747"},
-            {"id": "tt0944947", "title": "Game of Thrones", "year": "2011–2019", "type": "series", "genre": "Fantasy", "imdbID": "tt0944947"},
-            {"id": "tt1475582", "title": "Sherlock", "year": "2010–2017", "type": "series", "genre": "Mystery", "imdbID": "tt1475582"},
-            {"id": "tt0386676", "title": "The Office", "year": "2005–2013", "type": "series", "genre": "Comedy", "imdbID": "tt0386676"},
-            {"id": "tt0773262", "title": "Dexter", "year": "2006–2013", "type": "series", "genre": "Crime", "imdbID": "tt0773262"},
-            {"id": "tt2861424", "title": "Rick and Morty", "year": "2013–", "type": "series", "genre": "Animation", "imdbID": "tt2861424"},
-            {"id": "tt0475784", "title": "Westworld", "year": "2016–2022", "type": "series", "genre": "Sci-Fi", "imdbID": "tt0475784"},
-            {"id": "tt4574334", "title": "Stranger Things", "year": "2016–", "type": "series", "genre": "Horror", "imdbID": "tt4574334"},
+        tv_ids = [
+            "tt0903747",  # Breaking Bad
+            "tt0944947",  # Game of Thrones
+            "tt1475582",  # Sherlock
+            "tt0386676",  # The Office
+            "tt0773262",  # Dexter
+            "tt2861424",  # Rick and Morty
+            "tt0475784",  # Westworld
+            "tt4574334",  # Stranger Things
         ]
         
-        return {"results": tv_shows, "source": "curated"}
+        results = []
+        for imdb_id in tv_ids:
+            show_data = await enrich_movie_data(imdb_id)
+            results.append(show_data)
+        
+        return {"results": results, "source": "omdb_enriched"}
     except Exception as e:
         logger.error(f"Error discovering TV shows: {e}")
         raise HTTPException(status_code=500, detail="Failed to discover TV shows")
