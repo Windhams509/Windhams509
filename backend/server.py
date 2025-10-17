@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 import os
 import logging
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 
 # Load environment variables FIRST
 ROOT_DIR = Path(__file__).parent
