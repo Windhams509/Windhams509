@@ -169,6 +169,259 @@ async def get_current_user_info(current_user: TokenData = Depends(get_current_us
     )
 
 
+
+# ==================== PASSWORD RESET & 2FA ROUTES ====================
+
+@api_router.post("/auth/forgot-password")
+async def forgot_password(request: ForgotPasswordRequest):
+    """Send password reset email"""
+    try:
+        user = await db.users.find_one({"email": request.email})
+        
+        if not user:
+            # Don't reveal if email exists or not for security
+            return {"message": "If email exists, password reset link has been sent"}
+        
+        # Generate reset token
+        reset_token = secrets.token_urlsafe(32)
+        expires = datetime.now(timezone.utc) + timedelta(hours=1)
+        
+        # Save token to database
+        await db.users.update_one(
+            {"email": request.email},
+            {"$set": {
+                "password_reset_token": reset_token,
+                "password_reset_expires": expires.isoformat()
+            }}
+        )
+        
+        # In production, send email here
+        # For now, just return the token (in production, this would be sent via email)
+        logger.info(f"Password reset token for {request.email}: {reset_token}")
+        
+        return {
+            "message": "If email exists, password reset link has been sent",
+            "reset_token": reset_token  # Remove this in production!
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in forgot password: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to process password reset"
+        )
+
+
+@api_router.post("/auth/reset-password")
+async def reset_password(request: ResetPasswordRequest):
+    """Reset password using token"""
+    try:
+        user = await db.users.find_one({"password_reset_token": request.token})
+        
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid or expired reset token"
+            )
+        
+        # Check if token is expired
+        expires = user.get("password_reset_expires")
+        if isinstance(expires, str):
+            expires = datetime.fromisoformat(expires)
+        
+        if expires and expires < datetime.now(timezone.utc):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Reset token has expired"
+            )
+        
+        # Update password
+        new_hashed = hash_password(request.new_password)
+        
+        await db.users.update_one(
+            {"password_reset_token": request.token},
+            {"$set": {
+                "hashed_password": new_hashed,
+                "password_reset_token": None,
+                "password_reset_expires": None
+            }}
+        )
+        
+        return {"message": "Password reset successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error resetting password: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to reset password"
+        )
+
+
+@api_router.post("/user/2fa/enable")
+async def enable_two_factor(
+    settings: Enable2FA,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Enable two-factor authentication (OPTIONAL)"""
+    try:
+        update_fields = {
+            "two_factor_enabled": True,
+            "two_factor_method": settings.method
+        }
+        
+        if settings.method == "sms" and settings.phone_number:
+            update_fields["phone_number"] = settings.phone_number
+        
+        if settings.method == "authenticator":
+            # Generate secret for authenticator app
+            import pyotp
+            secret = pyotp.random_base32()
+            update_fields["two_factor_secret"] = secret
+            
+            # Generate QR code URL
+            user = await db.users.find_one({"id": current_user.user_id})
+            totp_uri = pyotp.totp.TOTP(secret).provisioning_uri(
+                name=user["email"],
+                issuer_name="The Watchen Place"
+            )
+            
+            await db.users.update_one(
+                {"id": current_user.user_id},
+                {"$set": update_fields}
+            )
+            
+            return {
+                "message": "2FA enabled successfully",
+                "method": settings.method,
+                "secret": secret,
+                "qr_uri": totp_uri
+            }
+        
+        # Generate backup codes
+        backup_codes = [secrets.token_hex(4).upper() for _ in range(10)]
+        update_fields["backup_codes"] = backup_codes
+        
+        await db.users.update_one(
+            {"id": current_user.user_id},
+            {"$set": update_fields}
+        )
+        
+        return {
+            "message": "2FA enabled successfully",
+            "method": settings.method,
+            "backup_codes": backup_codes
+        }
+        
+    except Exception as e:
+        logger.error(f"Error enabling 2FA: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to enable 2FA"
+        )
+
+
+@api_router.post("/user/2fa/verify")
+async def verify_two_factor(
+    verification: Verify2FA,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Verify 2FA code"""
+    try:
+        user = await db.users.find_one({"id": current_user.user_id})
+        
+        if not user.get("two_factor_enabled"):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="2FA not enabled"
+            )
+        
+        method = user.get("two_factor_method")
+        
+        if method == "authenticator":
+            import pyotp
+            secret = user.get("two_factor_secret")
+            totp = pyotp.TOTP(secret)
+            
+            if not totp.verify(verification.code):
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Invalid code"
+                )
+        else:
+            # For email/SMS, check backup codes
+            if verification.code not in user.get("backup_codes", []):
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Invalid code"
+                )
+            
+            # Remove used backup code
+            backup_codes = user.get("backup_codes", [])
+            backup_codes.remove(verification.code)
+            await db.users.update_one(
+                {"id": current_user.user_id},
+                {"$set": {"backup_codes": backup_codes}}
+            )
+        
+        return {"message": "2FA verified successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error verifying 2FA: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to verify 2FA"
+        )
+
+
+@api_router.post("/user/2fa/disable")
+async def disable_two_factor(current_user: TokenData = Depends(get_current_user)):
+    """Disable two-factor authentication"""
+    try:
+        await db.users.update_one(
+            {"id": current_user.user_id},
+            {"$set": {
+                "two_factor_enabled": False,
+                "two_factor_method": None,
+                "two_factor_secret": None,
+                "backup_codes": []
+            }}
+        )
+        
+        return {"message": "2FA disabled successfully"}
+        
+    except Exception as e:
+        logger.error(f"Error disabling 2FA: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to disable 2FA"
+        )
+
+
+@api_router.get("/user/2fa/status")
+async def get_2fa_status(current_user: TokenData = Depends(get_current_user)):
+    """Get 2FA status"""
+    try:
+        user = await db.users.find_one({"id": current_user.user_id})
+        
+        return {
+            "enabled": user.get("two_factor_enabled", False),
+            "method": user.get("two_factor_method"),
+            "has_backup_codes": len(user.get("backup_codes", [])) > 0
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting 2FA status: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get 2FA status"
+        )
+
+
+
 # ==================== ADULT PIN ROUTES ====================
 
 @api_router.post("/user/pin/set")
