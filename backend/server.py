@@ -958,6 +958,212 @@ async def delete_user_account(current_user: TokenData = Depends(get_current_user
 
 
 
+# ==================== OFFLINE DOWNLOADS ROUTES ====================
+
+@api_router.post("/downloads/add")
+async def add_download(
+    download_req: DownloadRequest,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Add content to download queue for offline viewing"""
+    try:
+        # Check if already downloaded or in queue
+        existing = await db.downloads.find_one({
+            "user_id": current_user.user_id,
+            "content_id": download_req.content_id,
+            "status": {"$in": ["pending", "downloading", "completed"]}
+        })
+        
+        if existing:
+            return {
+                "message": "Content already in downloads",
+                "download_id": existing["id"],
+                "status": existing["status"]
+            }
+        
+        # Create download entry
+        download = Download(
+            user_id=current_user.user_id,
+            content_id=download_req.content_id,
+            content_type=download_req.content_type,
+            title=download_req.title,
+            quality=download_req.quality,
+            poster_path=download_req.poster_path,
+            file_url=download_req.file_url,
+            status="pending"
+        )
+        
+        await db.downloads.insert_one(download.model_dump())
+        
+        return {
+            "message": "Download added to queue",
+            "download_id": download.id,
+            "status": "pending",
+            "info": "Download will start automatically. You can continue using the app."
+        }
+        
+    except Exception as e:
+        logger.error(f"Error adding download: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to add download"
+        )
+
+
+@api_router.get("/downloads")
+async def get_downloads(current_user: TokenData = Depends(get_current_user)):
+    """Get all user downloads"""
+    try:
+        downloads = await db.downloads.find({
+            "user_id": current_user.user_id
+        }).sort("created_at", -1).to_list(100)
+        
+        # Remove MongoDB ObjectId fields
+        for download in downloads:
+            if "_id" in download:
+                del download["_id"]
+        
+        # Calculate total storage used
+        total_size = sum(d.get("file_size", 0) for d in downloads if d.get("status") == "completed")
+        
+        return {
+            "downloads": downloads,
+            "total_count": len(downloads),
+            "completed_count": sum(1 for d in downloads if d.get("status") == "completed"),
+            "total_storage_bytes": total_size,
+            "total_storage_mb": round(total_size / (1024 * 1024), 2)
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting downloads: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get downloads"
+        )
+
+
+@api_router.get("/downloads/completed")
+async def get_completed_downloads(current_user: TokenData = Depends(get_current_user)):
+    """Get only completed downloads (available offline)"""
+    try:
+        downloads = await db.downloads.find({
+            "user_id": current_user.user_id,
+            "status": "completed"
+        }).sort("downloaded_at", -1).to_list(100)
+        
+        # Remove MongoDB ObjectId fields
+        for download in downloads:
+            if "_id" in download:
+                del download["_id"]
+        
+        return {"downloads": downloads}
+        
+    except Exception as e:
+        logger.error(f"Error getting completed downloads: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get completed downloads"
+        )
+
+
+@api_router.put("/downloads/{download_id}")
+async def update_download(
+    download_id: str,
+    update: DownloadUpdate,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Update download status/progress (used by download manager)"""
+    try:
+        update_fields = {}
+        
+        if update.status:
+            update_fields["status"] = update.status
+            if update.status == "completed":
+                update_fields["downloaded_at"] = datetime.now(timezone.utc).isoformat()
+        
+        if update.progress is not None:
+            update_fields["progress"] = update.progress
+        
+        if update_fields:
+            result = await db.downloads.update_one(
+                {
+                    "id": download_id,
+                    "user_id": current_user.user_id
+                },
+                {"$set": update_fields}
+            )
+            
+            if result.modified_count == 0:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Download not found"
+                )
+        
+        return {"message": "Download updated successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating download: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update download"
+        )
+
+
+@api_router.delete("/downloads/{download_id}")
+async def delete_download(
+    download_id: str,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Delete a download and free up storage"""
+    try:
+        result = await db.downloads.delete_one({
+            "id": download_id,
+            "user_id": current_user.user_id
+        })
+        
+        if result.deleted_count == 0:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Download not found"
+            )
+        
+        return {"message": "Download deleted successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting download: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to delete download"
+        )
+
+
+@api_router.delete("/downloads/clear-all")
+async def clear_all_downloads(current_user: TokenData = Depends(get_current_user)):
+    """Clear all downloads and free up storage"""
+    try:
+        result = await db.downloads.delete_many({
+            "user_id": current_user.user_id
+        })
+        
+        return {
+            "message": "All downloads cleared",
+            "count": result.deleted_count
+        }
+        
+    except Exception as e:
+        logger.error(f"Error clearing downloads: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to clear downloads"
+        )
+
+
+
+
 
 # ==================== CONTENT DISCOVERY ROUTES ====================
 
