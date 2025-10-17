@@ -238,6 +238,17 @@ const Home = () => {
         {boxSets.length > 0 && (
           <ContentRow title="Box Sets & Collections" items={boxSets} />
         )}
+
+        {/* Documentaries */}
+        {iAmSeries.length > 0 && (
+          <ContentRow title="I Am... Documentary Series" items={iAmSeries} />
+        )}
+        {musicianDocs.length > 0 && (
+          <ContentRow title="Musician Documentaries" items={musicianDocs} />
+        )}
+        {documentaries.length > 0 && (
+          <ContentRow title="Documentaries" items={documentaries} />
+        )}
       </div>
 
       <Footer />
