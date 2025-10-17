@@ -76,7 +76,7 @@ export const getTitle = (content) => {
 
 // Get poster from content (supports both formats)
 export const getPoster = (content) => {
-  return content.Poster || content.poster_path || null;
+  return content.poster || content.Poster || content.poster_path || null;
 };
 
 // Get rating from content
