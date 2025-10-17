@@ -862,6 +862,24 @@ async def update_content_preferences(
     return {"message": "Content preferences updated successfully"}
 
 
+
+@api_router.put("/user/preferences/browser")
+async def update_browser_settings(
+    settings: BrowserSettings,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Update browser preferences"""
+    update_fields = {k: v for k, v in settings.model_dump().items() if v is not None}
+    
+    if update_fields:
+        await db.users.update_one(
+            {"id": current_user.user_id},
+            {"$set": update_fields}
+        )
+    
+    return {"message": "Browser settings updated successfully"}
+
+
 @api_router.get("/user/preferences")
 async def get_user_preferences(current_user: TokenData = Depends(get_current_user)):
     """Get all user preferences"""
