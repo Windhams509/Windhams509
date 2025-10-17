@@ -43,6 +43,27 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+# Helper function to enrich movie data with posters
+async def enrich_movie_data(imdb_id: str) -> Dict[str, Any]:
+    """Fetch full movie data including poster from OMDb"""
+    try:
+        data = await omdb_client.get_by_imdb_id(imdb_id)
+        if data.get("Response") == "True":
+            return {
+                "imdbID": imdb_id,
+                "title": data.get("Title"),
+                "year": data.get("Year"),
+                "type": data.get("Type", "movie"),
+                "poster": data.get("Poster"),
+                "rating": data.get("imdbRating"),
+                "genre": data.get("Genre"),
+            }
+    except Exception as e:
+        logger.error(f"Error enriching movie data for {imdb_id}: {e}")
+    
+    return {"imdbID": imdb_id, "title": "Unknown", "year": "N/A", "type": "movie", "poster": None}
+
+
 # ==================== AUTH ROUTES ====================
 
 @api_router.post("/auth/register", response_model=UserResponse)
