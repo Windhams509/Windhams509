@@ -90,7 +90,7 @@ class User(BaseModel):
     maturity_filter: str = "all"  # all, pg13, r, nc17
     
     # Browser Preferences
-    preferred_browser: str = "chrome"  # chrome, brave, firefox
+    preferred_browser: str = "chrome"  # chrome, brave, firefox, duckduckgo
     enable_tab_grouping: bool = True
     open_links_in_new_tab: bool = True
     browser_auto_organize: bool = False
