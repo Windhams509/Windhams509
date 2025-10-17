@@ -186,6 +186,333 @@ async def disable_adult_pin(current_user: TokenData = Depends(get_current_user))
     return {"message": "Adult PIN protection disabled"}
 
 
+# ==================== USER SETTINGS ROUTES ====================
+
+@api_router.put("/user/profile")
+async def update_profile(
+    profile_data: UpdateProfile,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Update user profile (name, email)"""
+    update_fields = {}
+    
+    if profile_data.name is not None:
+        update_fields["name"] = profile_data.name
+    
+    if profile_data.email is not None:
+        # Check if email is already taken by another user
+        existing_user = await db.users.find_one({
+            "email": profile_data.email,
+            "id": {"$ne": current_user.user_id}
+        })
+        if existing_user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email already in use"
+            )
+        update_fields["email"] = profile_data.email
+    
+    if update_fields:
+        await db.users.update_one(
+            {"id": current_user.user_id},
+            {"$set": update_fields}
+        )
+    
+    return {"message": "Profile updated successfully"}
+
+
+@api_router.put("/user/password")
+async def change_password(
+    password_data: ChangePassword,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Change user password"""
+    # Get user from database
+    user = await db.users.find_one({"id": current_user.user_id})
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    # Verify current password
+    if not verify_password(password_data.current_password, user["hashed_password"]):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Current password is incorrect"
+        )
+    
+    # Hash and update new password
+    new_hashed_password = hash_password(password_data.new_password)
+    await db.users.update_one(
+        {"id": current_user.user_id},
+        {"$set": {"hashed_password": new_hashed_password}}
+    )
+    
+    return {"message": "Password changed successfully"}
+
+
+@api_router.put("/user/pin")
+async def update_pin(
+    pin_data: UpdatePIN,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Update adult content PIN"""
+    user = await db.users.find_one({"id": current_user.user_id})
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    # If user has existing PIN, verify current PIN
+    if user.get("adult_pin") and user.get("adult_pin_enabled"):
+        if not pin_data.current_pin:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Current PIN required"
+            )
+        if user["adult_pin"] != pin_data.current_pin:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Current PIN is incorrect"
+            )
+    
+    # Validate new PIN format (4 digits)
+    if not pin_data.new_pin.isdigit() or len(pin_data.new_pin) != 4:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="PIN must be exactly 4 digits"
+        )
+    
+    # Update PIN
+    await db.users.update_one(
+        {"id": current_user.user_id},
+        {"$set": {"adult_pin": pin_data.new_pin, "adult_pin_enabled": True}}
+    )
+    
+    return {"message": "PIN updated successfully"}
+
+
+# ==================== EXTERNAL ACCOUNTS ROUTES ====================
+
+@api_router.post("/user/connect-service")
+async def connect_service(
+    service_data: ConnectService,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Connect an external service account"""
+    service_name = service_data.service_name.lower()
+    
+    # Map service names to database fields
+    service_field_map = {
+        # Content Databases
+        "trakt": "trakt_access_token",
+        "tmdb": "tmdb_api_key",
+        "omdb": "omdb_api_key",
+        "imdb": "imdb_api_key",
+        "tvdb": "tvdb_api_key",
+        "fanart": "fanart_api_key",
+        "mdblist": "mdblist_api_key",
+        # Debrid Services
+        "real_debrid": "real_debrid_api_key",
+        "realdebrid": "real_debrid_api_key",
+        "all_debrid": "all_debrid_api_key",
+        "alldebrid": "all_debrid_api_key",
+        "premiumize": "premiumize_api_key",
+        "torbox": "torbox_api_key",
+        "debrid_link": "debrid_link_api_key",
+        # Media Servers
+        "plex": "plex_token",
+        "emby": "emby_api_key",
+        "jellyfin": "jellyfin_api_key",
+        # Other Services
+        "simkl": "simkl_access_token",
+        "kitsu": "kitsu_access_token",
+        "anilist": "anilist_access_token",
+    }
+    
+    field_name = service_field_map.get(service_name)
+    if not field_name:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Unknown service: {service_name}"
+        )
+    
+    # Determine which credential to use
+    credential = service_data.access_token if service_data.access_token else service_data.api_key
+    
+    if not credential:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="API key or access token required"
+        )
+    
+    # Update user with service credentials
+    await db.users.update_one(
+        {"id": current_user.user_id},
+        {"$set": {field_name: credential}}
+    )
+    
+    return {"message": f"{service_name.title()} connected successfully"}
+
+
+@api_router.post("/user/disconnect-service")
+async def disconnect_service(
+    service_data: DisconnectService,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Disconnect an external service account"""
+    service_name = service_data.service_name.lower()
+    
+    # Map service names to database fields (same as connect)
+    service_field_map = {
+        "trakt": "trakt_access_token",
+        "tmdb": "tmdb_api_key",
+        "omdb": "omdb_api_key",
+        "imdb": "imdb_api_key",
+        "tvdb": "tvdb_api_key",
+        "fanart": "fanart_api_key",
+        "mdblist": "mdblist_api_key",
+        "real_debrid": "real_debrid_api_key",
+        "realdebrid": "real_debrid_api_key",
+        "all_debrid": "all_debrid_api_key",
+        "alldebrid": "all_debrid_api_key",
+        "premiumize": "premiumize_api_key",
+        "torbox": "torbox_api_key",
+        "debrid_link": "debrid_link_api_key",
+        "plex": "plex_token",
+        "emby": "emby_api_key",
+        "jellyfin": "jellyfin_api_key",
+        "simkl": "simkl_access_token",
+        "kitsu": "kitsu_access_token",
+        "anilist": "anilist_access_token",
+    }
+    
+    field_name = service_field_map.get(service_name)
+    if not field_name:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Unknown service: {service_name}"
+        )
+    
+    # Remove service credentials
+    await db.users.update_one(
+        {"id": current_user.user_id},
+        {"$set": {field_name: None}}
+    )
+    
+    return {"message": f"{service_name.title()} disconnected successfully"}
+
+
+@api_router.get("/user/connected-services")
+async def get_connected_services(current_user: TokenData = Depends(get_current_user)):
+    """Get list of connected services"""
+    user = await db.users.find_one({"id": current_user.user_id})
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    # Check which services are connected
+    connected = {
+        # Content Databases
+        "trakt": bool(user.get("trakt_access_token")),
+        "tmdb": bool(user.get("tmdb_api_key")),
+        "omdb": bool(user.get("omdb_api_key")),
+        "imdb": bool(user.get("imdb_api_key")),
+        "tvdb": bool(user.get("tvdb_api_key")),
+        "fanart": bool(user.get("fanart_api_key")),
+        "mdblist": bool(user.get("mdblist_api_key")),
+        # Debrid Services
+        "real_debrid": bool(user.get("real_debrid_api_key")),
+        "all_debrid": bool(user.get("all_debrid_api_key")),
+        "premiumize": bool(user.get("premiumize_api_key")),
+        "torbox": bool(user.get("torbox_api_key")),
+        "debrid_link": bool(user.get("debrid_link_api_key")),
+        # Media Servers
+        "plex": bool(user.get("plex_token")),
+        "emby": bool(user.get("emby_api_key")),
+        "jellyfin": bool(user.get("jellyfin_api_key")),
+        # Other Services
+        "simkl": bool(user.get("simkl_access_token")),
+        "kitsu": bool(user.get("kitsu_access_token")),
+        "anilist": bool(user.get("anilist_access_token")),
+    }
+    
+    return {"connected_services": connected}
+
+
+# ==================== REPOSITORY SYSTEM ROUTES ====================
+
+@api_router.post("/user/repositories")
+async def add_repository(
+    repo_data: AddRepository,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Add a custom source repository (Kodi-like)"""
+    # Create repository object
+    repository = Repository(
+        user_id=current_user.user_id,
+        name=repo_data.name,
+        url=repo_data.url,
+        description=repo_data.description
+    )
+    
+    await db.repositories.insert_one(repository.model_dump())
+    
+    return {"message": "Repository added successfully", "repository": repository.model_dump()}
+
+
+@api_router.get("/user/repositories")
+async def get_repositories(current_user: TokenData = Depends(get_current_user)):
+    """Get all user repositories"""
+    repositories = await db.repositories.find({"user_id": current_user.user_id}).to_list(length=None)
+    return {"repositories": repositories}
+
+
+@api_router.put("/user/repositories/toggle")
+async def toggle_repository(
+    toggle_data: ToggleRepository,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Enable or disable a repository"""
+    result = await db.repositories.update_one(
+        {"id": toggle_data.repository_id, "user_id": current_user.user_id},
+        {"$set": {"enabled": toggle_data.enabled}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Repository not found"
+        )
+    
+    return {"message": f"Repository {'enabled' if toggle_data.enabled else 'disabled'} successfully"}
+
+
+@api_router.delete("/user/repositories/{repository_id}")
+async def delete_repository(
+    repository_id: str,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Delete a repository"""
+    result = await db.repositories.delete_one({
+        "id": repository_id,
+        "user_id": current_user.user_id
+    })
+    
+    if result.deleted_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Repository not found"
+        )
+    
+    return {"message": "Repository deleted successfully"}
+
+
+
 # ==================== CONTENT DISCOVERY ROUTES ====================
 
 @api_router.get("/content/trending")
