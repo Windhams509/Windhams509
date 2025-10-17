@@ -430,6 +430,315 @@ class StreamFlixTester:
             except Exception as e:
                 self.log_result("PIN - Disable PIN", False, f"Exception: {str(e)}")
 
+    async def test_user_settings_endpoints(self):
+        """Test new user settings endpoints"""
+        if not self.auth_token:
+            self.log_result("User Settings", False, "No auth token available")
+            return
+            
+        headers = {"Authorization": f"Bearer {self.auth_token}"}
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            
+            # Test profile update (name and email)
+            try:
+                profile_data = {
+                    "name": "Updated StreamFlix User",
+                    "email": f"updated_{uuid.uuid4().hex[:8]}@streamflix.com"
+                }
+                response = await client.put(f"{self.base_url}/user/profile", json=profile_data, headers=headers)
+                if response.status_code == 200:
+                    self.log_result("Settings - Update Profile", True, "Profile updated successfully")
+                else:
+                    self.log_result("Settings - Update Profile", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("Settings - Update Profile", False, f"Exception: {str(e)}")
+
+            # Test password change
+            try:
+                password_data = {
+                    "current_password": self.test_user_password,
+                    "new_password": "NewSecurePass456!"
+                }
+                response = await client.put(f"{self.base_url}/user/password", json=password_data, headers=headers)
+                if response.status_code == 200:
+                    self.log_result("Settings - Change Password", True, "Password changed successfully")
+                    # Update our stored password for future tests
+                    self.test_user_password = "NewSecurePass456!"
+                else:
+                    self.log_result("Settings - Change Password", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("Settings - Change Password", False, f"Exception: {str(e)}")
+
+            # Test password change with wrong current password
+            try:
+                password_data = {
+                    "current_password": "WrongPassword123!",
+                    "new_password": "AnotherNewPass789!"
+                }
+                response = await client.put(f"{self.base_url}/user/password", json=password_data, headers=headers)
+                if response.status_code == 401:
+                    self.log_result("Settings - Wrong Current Password", True, "Correctly rejected wrong current password")
+                else:
+                    self.log_result("Settings - Wrong Current Password", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("Settings - Wrong Current Password", False, f"Exception: {str(e)}")
+
+            # Test PIN update (new endpoint)
+            try:
+                pin_data = {
+                    "new_pin": "5678"
+                }
+                response = await client.put(f"{self.base_url}/user/pin", json=pin_data, headers=headers)
+                if response.status_code == 200:
+                    self.log_result("Settings - Update PIN", True, "PIN updated successfully")
+                else:
+                    self.log_result("Settings - Update PIN", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("Settings - Update PIN", False, f"Exception: {str(e)}")
+
+            # Test PIN update with current PIN verification
+            try:
+                pin_data = {
+                    "current_pin": "5678",
+                    "new_pin": "9876"
+                }
+                response = await client.put(f"{self.base_url}/user/pin", json=pin_data, headers=headers)
+                if response.status_code == 200:
+                    self.log_result("Settings - Update PIN with Current", True, "PIN updated with current PIN verification")
+                else:
+                    self.log_result("Settings - Update PIN with Current", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("Settings - Update PIN with Current", False, f"Exception: {str(e)}")
+
+    async def test_external_services_endpoints(self):
+        """Test external services connection endpoints"""
+        if not self.auth_token:
+            self.log_result("External Services", False, "No auth token available")
+            return
+            
+        headers = {"Authorization": f"Bearer {self.auth_token}"}
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            
+            # Test connecting TMDB service
+            try:
+                service_data = {
+                    "service_name": "tmdb",
+                    "api_key": "fake_tmdb_api_key_12345"
+                }
+                response = await client.post(f"{self.base_url}/user/connect-service", json=service_data, headers=headers)
+                if response.status_code == 200:
+                    self.log_result("External Services - Connect TMDB", True, "TMDB service connected successfully")
+                else:
+                    self.log_result("External Services - Connect TMDB", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("External Services - Connect TMDB", False, f"Exception: {str(e)}")
+
+            # Test connecting Trakt service with access token
+            try:
+                service_data = {
+                    "service_name": "trakt",
+                    "access_token": "fake_trakt_access_token_67890"
+                }
+                response = await client.post(f"{self.base_url}/user/connect-service", json=service_data, headers=headers)
+                if response.status_code == 200:
+                    self.log_result("External Services - Connect Trakt", True, "Trakt service connected successfully")
+                else:
+                    self.log_result("External Services - Connect Trakt", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("External Services - Connect Trakt", False, f"Exception: {str(e)}")
+
+            # Test connecting Real-Debrid service
+            try:
+                service_data = {
+                    "service_name": "real_debrid",
+                    "api_key": "fake_realdebrid_key_abcdef"
+                }
+                response = await client.post(f"{self.base_url}/user/connect-service", json=service_data, headers=headers)
+                if response.status_code == 200:
+                    self.log_result("External Services - Connect Real-Debrid", True, "Real-Debrid service connected successfully")
+                else:
+                    self.log_result("External Services - Connect Real-Debrid", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("External Services - Connect Real-Debrid", False, f"Exception: {str(e)}")
+
+            # Test connecting invalid service
+            try:
+                service_data = {
+                    "service_name": "invalid_service",
+                    "api_key": "fake_key"
+                }
+                response = await client.post(f"{self.base_url}/user/connect-service", json=service_data, headers=headers)
+                if response.status_code == 400:
+                    self.log_result("External Services - Invalid Service", True, "Correctly rejected invalid service")
+                else:
+                    self.log_result("External Services - Invalid Service", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("External Services - Invalid Service", False, f"Exception: {str(e)}")
+
+            # Test getting connected services
+            try:
+                response = await client.get(f"{self.base_url}/user/connected-services", headers=headers)
+                if response.status_code == 200:
+                    data = response.json()
+                    connected_services = data.get("connected_services", {})
+                    connected_count = sum(1 for service, connected in connected_services.items() if connected)
+                    self.log_result("External Services - Get Connected", True, f"Found {connected_count} connected services")
+                else:
+                    self.log_result("External Services - Get Connected", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("External Services - Get Connected", False, f"Exception: {str(e)}")
+
+            # Test disconnecting TMDB service
+            try:
+                service_data = {
+                    "service_name": "tmdb"
+                }
+                response = await client.post(f"{self.base_url}/user/disconnect-service", json=service_data, headers=headers)
+                if response.status_code == 200:
+                    self.log_result("External Services - Disconnect TMDB", True, "TMDB service disconnected successfully")
+                else:
+                    self.log_result("External Services - Disconnect TMDB", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("External Services - Disconnect TMDB", False, f"Exception: {str(e)}")
+
+            # Test disconnecting invalid service
+            try:
+                service_data = {
+                    "service_name": "invalid_service"
+                }
+                response = await client.post(f"{self.base_url}/user/disconnect-service", json=service_data, headers=headers)
+                if response.status_code == 400:
+                    self.log_result("External Services - Disconnect Invalid", True, "Correctly rejected invalid service disconnect")
+                else:
+                    self.log_result("External Services - Disconnect Invalid", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("External Services - Disconnect Invalid", False, f"Exception: {str(e)}")
+
+    async def test_repository_system_endpoints(self):
+        """Test repository system endpoints"""
+        if not self.auth_token:
+            self.log_result("Repository System", False, "No auth token available")
+            return
+            
+        headers = {"Authorization": f"Bearer {self.auth_token}"}
+        repository_id = None
+        
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            
+            # Test adding a repository
+            try:
+                repo_data = {
+                    "name": "Test Movie Repository",
+                    "url": "https://example.com/movies/repo.xml",
+                    "description": "A test repository for movie sources"
+                }
+                response = await client.post(f"{self.base_url}/user/repositories", json=repo_data, headers=headers)
+                if response.status_code == 200:
+                    data = response.json()
+                    repository_id = data.get("repository", {}).get("id")
+                    self.log_result("Repository - Add Repository", True, f"Repository added with ID: {repository_id}")
+                else:
+                    self.log_result("Repository - Add Repository", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("Repository - Add Repository", False, f"Exception: {str(e)}")
+
+            # Test adding another repository
+            try:
+                repo_data = {
+                    "name": "Test TV Repository",
+                    "url": "https://example.com/tv/repo.xml",
+                    "description": "A test repository for TV show sources"
+                }
+                response = await client.post(f"{self.base_url}/user/repositories", json=repo_data, headers=headers)
+                if response.status_code == 200:
+                    self.log_result("Repository - Add Second Repository", True, "Second repository added successfully")
+                else:
+                    self.log_result("Repository - Add Second Repository", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("Repository - Add Second Repository", False, f"Exception: {str(e)}")
+
+            # Test getting repositories
+            try:
+                response = await client.get(f"{self.base_url}/user/repositories", headers=headers)
+                if response.status_code == 200:
+                    data = response.json()
+                    repositories = data.get("repositories", [])
+                    repo_count = len(repositories)
+                    self.log_result("Repository - Get Repositories", True, f"Found {repo_count} repositories")
+                    
+                    # Get the first repository ID if we don't have one
+                    if not repository_id and repositories:
+                        repository_id = repositories[0].get("id")
+                else:
+                    self.log_result("Repository - Get Repositories", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("Repository - Get Repositories", False, f"Exception: {str(e)}")
+
+            # Test toggling repository (disable)
+            if repository_id:
+                try:
+                    toggle_data = {
+                        "repository_id": repository_id,
+                        "enabled": False
+                    }
+                    response = await client.put(f"{self.base_url}/user/repositories/toggle", json=toggle_data, headers=headers)
+                    if response.status_code == 200:
+                        self.log_result("Repository - Disable Repository", True, "Repository disabled successfully")
+                    else:
+                        self.log_result("Repository - Disable Repository", False, f"Status: {response.status_code}", response.text)
+                except Exception as e:
+                    self.log_result("Repository - Disable Repository", False, f"Exception: {str(e)}")
+
+                # Test toggling repository (enable)
+                try:
+                    toggle_data = {
+                        "repository_id": repository_id,
+                        "enabled": True
+                    }
+                    response = await client.put(f"{self.base_url}/user/repositories/toggle", json=toggle_data, headers=headers)
+                    if response.status_code == 200:
+                        self.log_result("Repository - Enable Repository", True, "Repository enabled successfully")
+                    else:
+                        self.log_result("Repository - Enable Repository", False, f"Status: {response.status_code}", response.text)
+                except Exception as e:
+                    self.log_result("Repository - Enable Repository", False, f"Exception: {str(e)}")
+
+                # Test deleting repository
+                try:
+                    response = await client.delete(f"{self.base_url}/user/repositories/{repository_id}", headers=headers)
+                    if response.status_code == 200:
+                        self.log_result("Repository - Delete Repository", True, "Repository deleted successfully")
+                    else:
+                        self.log_result("Repository - Delete Repository", False, f"Status: {response.status_code}", response.text)
+                except Exception as e:
+                    self.log_result("Repository - Delete Repository", False, f"Exception: {str(e)}")
+            else:
+                self.log_result("Repository - Toggle/Delete Tests", False, "No repository ID available for toggle/delete tests")
+
+            # Test toggling non-existent repository
+            try:
+                toggle_data = {
+                    "repository_id": "non_existent_id_12345",
+                    "enabled": True
+                }
+                response = await client.put(f"{self.base_url}/user/repositories/toggle", json=toggle_data, headers=headers)
+                if response.status_code == 404:
+                    self.log_result("Repository - Toggle Non-existent", True, "Correctly rejected non-existent repository")
+                else:
+                    self.log_result("Repository - Toggle Non-existent", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("Repository - Toggle Non-existent", False, f"Exception: {str(e)}")
+
+            # Test deleting non-existent repository
+            try:
+                response = await client.delete(f"{self.base_url}/user/repositories/non_existent_id_12345", headers=headers)
+                if response.status_code == 404:
+                    self.log_result("Repository - Delete Non-existent", True, "Correctly rejected non-existent repository deletion")
+                else:
+                    self.log_result("Repository - Delete Non-existent", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("Repository - Delete Non-existent", False, f"Exception: {str(e)}")
+
     async def test_error_handling(self):
         """Test error handling for invalid requests"""
         async with httpx.AsyncClient(timeout=30.0) as client:
