@@ -308,10 +308,11 @@ async def update_pin(
             detail="PIN must be exactly 4 digits"
         )
     
-    # Update PIN
+    # Update PIN (hash it for security)
+    hashed_pin = hash_password(pin_data.new_pin)
     await db.users.update_one(
         {"id": current_user.user_id},
-        {"$set": {"adult_pin": pin_data.new_pin, "adult_pin_enabled": True}}
+        {"$set": {"adult_pin": hashed_pin, "adult_pin_enabled": True}}
     )
     
     return {"message": "PIN updated successfully"}
