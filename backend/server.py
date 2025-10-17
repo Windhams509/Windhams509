@@ -21,7 +21,7 @@ from models import (
     ConnectService, DisconnectService, AddRepository, Repository, ToggleRepository,
     DeviceCodeRequest, DeviceCodeResponse, DeviceCodePoll,
     SubtitleSettings, SubtitleServiceConnect, PlaybackSettings,
-    AppearanceSettings, PrivacySettings, ContentPreferences
+    AppearanceSettings, PrivacySettings, ContentPreferences, BrowserSettings
 )
 from auth import (
     hash_password, verify_password, create_access_token,
