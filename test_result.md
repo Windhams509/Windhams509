@@ -155,39 +155,48 @@ backend:
 
   - task: "User settings endpoints"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Added endpoints for updating profile (name, email), changing password, and updating adult content PIN"
+      - working: true
+        agent: "testing"
+        comment: "All user settings endpoints tested successfully: PUT /api/user/profile (profile update), PUT /api/user/password (password change with verification), PUT /api/user/pin (PIN update). Fixed PIN hashing bug during testing. All validation and security checks working correctly."
 
   - task: "External services connection endpoints"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Added endpoints to connect/disconnect external services: Trakt, TMDb, OMDb, IMDb, TVDb, Fanart, MDBList, Real-Debrid, AllDebrid, Premiumize, Torbox, Debrid-Link, Plex, Emby, Jellyfin, Simkl, Kitsu, AniList"
+      - working: true
+        agent: "testing"
+        comment: "All external services endpoints tested successfully: POST /api/user/connect-service (supports 18+ services), POST /api/user/disconnect-service, GET /api/user/connected-services. Tested TMDB, Trakt, Real-Debrid connections. Proper validation for invalid services. Service mapping working correctly."
 
   - task: "Repository system endpoints"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Added Kodi-like repository system endpoints: add, list, toggle enable/disable, and delete repositories"
+      - working: true
+        agent: "testing"
+        comment: "All repository system endpoints tested successfully: POST /api/user/repositories (add), GET /api/user/repositories (list), PUT /api/user/repositories/toggle (enable/disable), DELETE /api/user/repositories/{id} (delete). Fixed MongoDB ObjectId serialization issue during testing. All CRUD operations working correctly with proper error handling."
 
 frontend:
   - task: "React app structure"
