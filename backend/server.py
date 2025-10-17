@@ -2681,6 +2681,296 @@ async def get_seasonal_content():
 
 
 
+# ==================== ADMIN DASHBOARD ROUTES ====================
+
+@api_router.get("/admin/stats")
+async def get_admin_stats(current_user: TokenData = Depends(get_current_user)):
+    """Get admin dashboard statistics"""
+    try:
+        # Verify admin
+        user = await db.users.find_one({"id": current_user.user_id})
+        if not user.get("is_admin"):
+            raise HTTPException(status_code=403, detail="Admin access required")
+        
+        # Get statistics
+        total_users = await db.users.count_documents({})
+        active_subscriptions = await db.users.count_documents({"subscription_status": "active"})
+        total_downloads = await db.downloads.count_documents({})
+        total_profiles = await db.profiles.count_documents({})
+        pending_approvals = await db.approval_requests.count_documents({"status": "pending"})
+        
+        # Revenue (placeholder - would integrate with Stripe)
+        revenue_data = {
+            "total": 0,
+            "monthly": 0,
+            "this_month": 0
+        }
+        
+        return {
+            "users": {
+                "total": total_users,
+                "active_subscriptions": active_subscriptions,
+                "free_tier": total_users - active_subscriptions
+            },
+            "content": {
+                "total_downloads": total_downloads,
+                "total_profiles": total_profiles
+            },
+            "family": {
+                "pending_approvals": pending_approvals
+            },
+            "revenue": revenue_data
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting admin stats: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get admin stats")
+
+
+# Subscription Plans
+@api_router.get("/subscriptions/plans")
+async def get_subscription_plans():
+    """Get all subscription plans"""
+    try:
+        plans = await db.subscription_plans.find({"is_active": True}).to_list(10)
+        for plan in plans:
+            if "_id" in plan:
+                del plan["_id"]
+        return {"plans": plans}
+    except Exception as e:
+        logger.error(f"Error getting plans: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get plans")
+
+
+@api_router.post("/admin/plans")
+async def create_subscription_plan(
+    plan: SubscriptionPlan,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Create new subscription plan (Admin only)"""
+    try:
+        user = await db.users.find_one({"id": current_user.user_id})
+        if not user.get("is_admin"):
+            raise HTTPException(status_code=403, detail="Admin access required")
+        
+        await db.subscription_plans.insert_one(plan.model_dump())
+        return {"message": "Plan created successfully", "plan_id": plan.id}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error creating plan: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create plan")
+
+
+@api_router.put("/admin/plans/{plan_id}")
+async def update_subscription_plan(
+    plan_id: str,
+    plan_data: dict,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Update subscription plan (Admin only)"""
+    try:
+        user = await db.users.find_one({"id": current_user.user_id})
+        if not user.get("is_admin"):
+            raise HTTPException(status_code=403, detail="Admin access required")
+        
+        result = await db.subscription_plans.update_one(
+            {"id": plan_id},
+            {"$set": plan_data}
+        )
+        
+        if result.modified_count == 0:
+            raise HTTPException(status_code=404, detail="Plan not found")
+        
+        return {"message": "Plan updated successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating plan: {e}")
+        raise HTTPException(status_code=500, detail="Failed to update plan")
+
+
+# Coupons
+@api_router.post("/admin/coupons")
+async def create_coupon(
+    coupon: Coupon,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Create coupon code (Admin only)"""
+    try:
+        user = await db.users.find_one({"id": current_user.user_id})
+        if not user.get("is_admin"):
+            raise HTTPException(status_code=403, detail="Admin access required")
+        
+        # Check if code already exists
+        existing = await db.coupons.find_one({"code": coupon.code.upper()})
+        if existing:
+            raise HTTPException(status_code=400, detail="Coupon code already exists")
+        
+        coupon.code = coupon.code.upper()
+        coupon.created_by = current_user.user_id
+        
+        await db.coupons.insert_one(coupon.model_dump())
+        return {"message": "Coupon created successfully", "coupon_id": coupon.id}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error creating coupon: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create coupon")
+
+
+@api_router.get("/admin/coupons")
+async def get_coupons(current_user: TokenData = Depends(get_current_user)):
+    """Get all coupons (Admin only)"""
+    try:
+        user = await db.users.find_one({"id": current_user.user_id})
+        if not user.get("is_admin"):
+            raise HTTPException(status_code=403, detail="Admin access required")
+        
+        coupons = await db.coupons.find({}).sort("created_at", -1).to_list(100)
+        for coupon in coupons:
+            if "_id" in coupon:
+                del coupon["_id"]
+        
+        return {"coupons": coupons}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting coupons: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get coupons")
+
+
+@api_router.put("/admin/coupons/{coupon_id}")
+async def update_coupon(
+    coupon_id: str,
+    coupon_data: dict,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Update coupon (Admin only)"""
+    try:
+        user = await db.users.find_one({"id": current_user.user_id})
+        if not user.get("is_admin"):
+            raise HTTPException(status_code=403, detail="Admin access required")
+        
+        result = await db.coupons.update_one(
+            {"id": coupon_id},
+            {"$set": coupon_data}
+        )
+        
+        if result.modified_count == 0:
+            raise HTTPException(status_code=404, detail="Coupon not found")
+        
+        return {"message": "Coupon updated successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating coupon: {e}")
+        raise HTTPException(status_code=500, detail="Failed to update coupon")
+
+
+@api_router.delete("/admin/coupons/{coupon_id}")
+async def delete_coupon(
+    coupon_id: str,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Delete coupon (Admin only)"""
+    try:
+        user = await db.users.find_one({"id": current_user.user_id})
+        if not user.get("is_admin"):
+            raise HTTPException(status_code=403, detail="Admin access required")
+        
+        result = await db.coupons.delete_one({"id": coupon_id})
+        
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Coupon not found")
+        
+        return {"message": "Coupon deleted successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting coupon: {e}")
+        raise HTTPException(status_code=500, detail="Failed to delete coupon")
+
+
+# Promotional Sales
+@api_router.post("/admin/sales")
+async def create_sale(
+    sale: PromotionalSale,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Create promotional sale (Admin only)"""
+    try:
+        user = await db.users.find_one({"id": current_user.user_id})
+        if not user.get("is_admin"):
+            raise HTTPException(status_code=403, detail="Admin access required")
+        
+        sale.created_by = current_user.user_id
+        
+        await db.promotional_sales.insert_one(sale.model_dump())
+        return {"message": "Sale created successfully", "sale_id": sale.id}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error creating sale: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create sale")
+
+
+@api_router.get("/admin/sales")
+async def get_sales(current_user: TokenData = Depends(get_current_user)):
+    """Get all sales (Admin only)"""
+    try:
+        user = await db.users.find_one({"id": current_user.user_id})
+        if not user.get("is_admin"):
+            raise HTTPException(status_code=403, detail="Admin access required")
+        
+        sales = await db.promotional_sales.find({}).sort("created_at", -1).to_list(50)
+        for sale in sales:
+            if "_id" in sale:
+                del sale["_id"]
+        
+        return {"sales": sales}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting sales: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get sales")
+
+
+@api_router.get("/sales/active")
+async def get_active_sales():
+    """Get currently active sales (Public)"""
+    try:
+        now = datetime.now(timezone.utc)
+        
+        sales = await db.promotional_sales.find({
+            "is_active": True,
+            "starts_at": {"$lte": now},
+            "ends_at": {"$gte": now}
+        }).to_list(10)
+        
+        for sale in sales:
+            if "_id" in sale:
+                del sale["_id"]
+        
+        return {"sales": sales}
+        
+    except Exception as e:
+        logger.error(f"Error getting active sales: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get active sales")
+
+
+
+
 
 
 # ==================== STREAMING SOURCES ROUTES ====================
