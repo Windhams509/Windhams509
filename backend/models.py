@@ -57,11 +57,8 @@ class UserResponse(BaseModel):
     email: EmailStr
     name: Optional[str] = None
     adult_pin_enabled: bool
-    has_trakt: bool = False
-    has_tmdb: bool = False
-    has_omdb: bool = False
-    has_imdb: bool = False
-    has_debrid: bool = False
+    # Connected services flags
+    connected_services: Optional[Dict[str, bool]] = None
 
 
 # Watchlist Models
