@@ -250,8 +250,8 @@ const Home = () => {
         <ContentRow title="Popular TV Shows" items={tvShows} />
         
         {/* Production Companies */}
-        {millsshotContent.length > 0 && (
-          <ContentRow title="Millsshot Productions" items={millsshotContent} />
+        {breeMillsContent.length > 0 && (
+          <ContentRow title="Bree Mills Productions" items={breeMillsContent} />
         )}
         {gammaContent.length > 0 && (
           <ContentRow title="Gamma Productions" items={gammaContent} />
