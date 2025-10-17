@@ -1565,6 +1565,354 @@ async def delete_profile(
 
 
 
+# ==================== PARENTAL NOTIFICATIONS & APPROVALS ====================
+
+@api_router.post("/content/request-approval")
+async def request_content_approval(
+    approval_request: ContentApprovalRequest,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Child requests parent approval for restricted content"""
+    try:
+        # Check if already has pending request for same content
+        existing = await db.approval_requests.find_one({
+            "profile_id": approval_request.profile_id,
+            "content_id": approval_request.content_id,
+            "status": "pending"
+        })
+        
+        if existing:
+            return {
+                "message": "Request already pending",
+                "request_id": existing["id"],
+                "status": "pending"
+            }
+        
+        # Set expiration (24 hours)
+        from datetime import timedelta
+        approval_request.expires_at = datetime.now(timezone.utc) + timedelta(hours=24)
+        
+        # Create approval request
+        await db.approval_requests.insert_one(approval_request.model_dump())
+        
+        # Create notification for parent
+        notification = ParentNotification(
+            user_id=approval_request.user_id,
+            profile_id=approval_request.profile_id,
+            notification_type="content_request",
+            title="Content Approval Request",
+            message=f"Your child wants to watch '{approval_request.content_title}' (Rated: {approval_request.maturity_rating})",
+            content_id=approval_request.content_id,
+            request_id=approval_request.id
+        )
+        
+        await db.parent_notifications.insert_one(notification.model_dump())
+        
+        return {
+            "message": "Approval request sent to parent",
+            "request_id": approval_request.id,
+            "status": "pending",
+            "info": "Your parent will be notified. You can check back later."
+        }
+        
+    except Exception as e:
+        logger.error(f"Error creating approval request: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create approval request"
+        )
+
+
+@api_router.get("/content/approval-requests")
+async def get_approval_requests(
+    current_user: TokenData = Depends(get_current_user),
+    status_filter: str = "pending"
+):
+    """Get all approval requests (for parents)"""
+    try:
+        query = {"user_id": current_user.user_id}
+        
+        if status_filter != "all":
+            query["status"] = status_filter
+        
+        requests = await db.approval_requests.find(query).sort("created_at", -1).limit(50).to_list(50)
+        
+        # Remove expired pending requests
+        now = datetime.now(timezone.utc)
+        for req in requests:
+            if "_id" in req:
+                del req["_id"]
+            
+            if req.get("status") == "pending":
+                expires_at = req.get("expires_at")
+                if isinstance(expires_at, str):
+                    expires_at = datetime.fromisoformat(expires_at)
+                
+                if expires_at and expires_at < now:
+                    # Auto-deny expired
+                    await db.approval_requests.update_one(
+                        {"id": req["id"]},
+                        {"$set": {"status": "denied", "parent_response": "Expired (auto-denied)"}}
+                    )
+                    req["status"] = "denied"
+        
+        return {"requests": requests}
+        
+    except Exception as e:
+        logger.error(f"Error getting approval requests: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get approval requests"
+        )
+
+
+@api_router.post("/content/approval-response")
+async def respond_to_approval(
+    response: ApprovalResponse,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Parent approves or denies content request"""
+    try:
+        # Get the request
+        request = await db.approval_requests.find_one({
+            "id": response.request_id,
+            "user_id": current_user.user_id
+        })
+        
+        if not request:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Approval request not found"
+            )
+        
+        if request.get("status") != "pending":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Request already processed"
+            )
+        
+        # Update request status
+        update_data = {
+            "status": "approved" if response.action == "approve" else "denied",
+            "parent_response": response.note or f"Parent {response.action}d this content",
+            "approved_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        await db.approval_requests.update_one(
+            {"id": response.request_id},
+            {"$set": update_data}
+        )
+        
+        # If approved and "approve similar" is checked
+        if response.action == "approve" and response.approve_similar:
+            # Get the maturity rating
+            maturity_rating = request.get("maturity_rating")
+            
+            # Update all pending requests with same rating for this profile
+            await db.approval_requests.update_many(
+                {
+                    "profile_id": request.get("profile_id"),
+                    "maturity_rating": maturity_rating,
+                    "status": "pending"
+                },
+                {"$set": {
+                    "status": "approved",
+                    "parent_response": f"Auto-approved (parent approved all {maturity_rating} content)",
+                    "approved_at": datetime.now(timezone.utc).isoformat()
+                }}
+            )
+        
+        # If "apply to profile" is checked, update profile settings
+        if response.action == "approve" and response.apply_to_profile:
+            maturity_rating = request.get("maturity_rating")
+            
+            # Update profile to allow this maturity rating
+            # This will prevent future requests for same rating
+            await db.profiles.update_one(
+                {"id": request.get("profile_id")},
+                {"$set": {"maturity_rating": maturity_rating}}
+            )
+        
+        # Create notification for child
+        notification = ParentNotification(
+            user_id=current_user.user_id,
+            profile_id=request.get("profile_id"),
+            notification_type="approval_response",
+            title=f"Request {response.action}d",
+            message=f"Your parent {response.action}d '{request.get('content_title')}'",
+            content_id=request.get("content_id"),
+            request_id=response.request_id
+        )
+        
+        await db.parent_notifications.insert_one(notification.model_dump())
+        
+        return {
+            "message": f"Request {response.action}d successfully",
+            "action": response.action
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error responding to approval: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to process approval response"
+        )
+
+
+@api_router.get("/notifications")
+async def get_notifications(
+    current_user: TokenData = Depends(get_current_user),
+    unread_only: bool = False
+):
+    """Get all notifications for user (parent or child)"""
+    try:
+        query = {"user_id": current_user.user_id}
+        
+        if unread_only:
+            query["read"] = False
+        
+        notifications = await db.parent_notifications.find(query).sort("created_at", -1).limit(50).to_list(50)
+        
+        for notif in notifications:
+            if "_id" in notif:
+                del notif["_id"]
+        
+        unread_count = await db.parent_notifications.count_documents({
+            "user_id": current_user.user_id,
+            "read": False
+        })
+        
+        return {
+            "notifications": notifications,
+            "unread_count": unread_count
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting notifications: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get notifications"
+        )
+
+
+@api_router.put("/notifications/{notification_id}/read")
+async def mark_notification_read(
+    notification_id: str,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Mark notification as read"""
+    try:
+        result = await db.parent_notifications.update_one(
+            {
+                "id": notification_id,
+                "user_id": current_user.user_id
+            },
+            {"$set": {
+                "read": True,
+                "read_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        if result.modified_count == 0:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Notification not found"
+            )
+        
+        return {"message": "Notification marked as read"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error marking notification read: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to mark notification as read"
+        )
+
+
+@api_router.put("/notifications/mark-all-read")
+async def mark_all_notifications_read(current_user: TokenData = Depends(get_current_user)):
+    """Mark all notifications as read"""
+    try:
+        result = await db.parent_notifications.update_many(
+            {
+                "user_id": current_user.user_id,
+                "read": False
+            },
+            {"$set": {
+                "read": True,
+                "read_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        return {
+            "message": "All notifications marked as read",
+            "count": result.modified_count
+        }
+        
+    except Exception as e:
+        logger.error(f"Error marking all notifications read: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to mark all notifications as read"
+        )
+
+
+@api_router.get("/content/{content_id}/approval-status")
+async def check_content_approval(
+    content_id: str,
+    profile_id: str,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Check if content is approved for a specific profile"""
+    try:
+        # Check for existing approval
+        approval = await db.approval_requests.find_one({
+            "profile_id": profile_id,
+            "content_id": content_id,
+            "status": "approved"
+        })
+        
+        if approval:
+            return {
+                "approved": True,
+                "message": "Content approved by parent"
+            }
+        
+        # Check for pending request
+        pending = await db.approval_requests.find_one({
+            "profile_id": profile_id,
+            "content_id": content_id,
+            "status": "pending"
+        })
+        
+        if pending:
+            return {
+                "approved": False,
+                "status": "pending",
+                "message": "Waiting for parent approval",
+                "request_id": pending["id"]
+            }
+        
+        return {
+            "approved": False,
+            "status": "not_requested",
+            "message": "Content not approved"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error checking approval status: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to check approval status"
+        )
+
+
+
+
 
 
 
