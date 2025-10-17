@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { getPosterUrl, getTitle, getPoster, getRating } from '../utils/tmdbHelpers';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import useKeyboardNavigation from '../hooks/useKeyboardNavigation';
 
 const Home = () => {
   const [trending, setTrending] = useState([]);
