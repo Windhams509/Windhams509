@@ -493,6 +493,12 @@ async def add_repository(
 async def get_repositories(current_user: TokenData = Depends(get_current_user)):
     """Get all user repositories"""
     repositories = await db.repositories.find({"user_id": current_user.user_id}).to_list(length=None)
+    
+    # Remove MongoDB ObjectId fields to avoid serialization issues
+    for repo in repositories:
+        if "_id" in repo:
+            del repo["_id"]
+    
     return {"repositories": repositories}
 
 
