@@ -254,6 +254,41 @@ class BrowserSettings(BaseModel):
 
 
 
+
+# Download Models
+class DownloadRequest(BaseModel):
+    content_id: str
+    content_type: str  # movie, tv, episode
+    title: str
+    quality: str = "720p"  # 360p, 480p, 720p, 1080p
+    poster_path: Optional[str] = None
+    file_url: Optional[str] = None
+
+
+class Download(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    content_id: str
+    content_type: str
+    title: str
+    quality: str
+    poster_path: Optional[str] = None
+    file_url: Optional[str] = None
+    file_size: Optional[int] = None  # bytes
+    status: str = "pending"  # pending, downloading, completed, failed
+    progress: float = 0.0  # 0-100
+    downloaded_at: Optional[datetime] = None
+    expires_at: Optional[datetime] = None  # Optional expiration
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class DownloadUpdate(BaseModel):
+    download_id: str
+    status: Optional[str] = None
+    progress: Optional[float] = None
+
+
+
 # Content Request/Response Models
 class ContentSearchRequest(BaseModel):
     query: str
