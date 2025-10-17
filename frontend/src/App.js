@@ -9,6 +9,8 @@ import Search from "./pages/Search";
 import Watchlist from "./pages/Watchlist";
 import Favorites from "./pages/Favorites";
 import Settings from "./pages/Settings";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
 import "./App.css";
 
 // Protected Route Component
