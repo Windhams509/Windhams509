@@ -39,6 +39,8 @@ export const contentAPI = {
   getMovieDetails: (movieId) => api.get(`/content/movie/${movieId}`),
   getTVDetails: (tvId) => api.get(`/content/tv/${tvId}`),
   getGenres: (mediaType = 'movie') => api.get(`/content/genres/${mediaType}`),
+  getRecommendations: () => api.get('/content/recommendations'),
+  getContinueWatching: () => api.get('/content/continue-watching'),
 };
 
 // Streaming Sources
