@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 import os
 import logging
+import secrets
 from typing import Optional, List, Dict, Any
 
 # Load environment variables FIRST
