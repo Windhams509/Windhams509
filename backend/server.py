@@ -23,7 +23,9 @@ from models import (
     DeviceCodeRequest, DeviceCodeResponse, DeviceCodePoll,
     SubtitleSettings, SubtitleServiceConnect, PlaybackSettings,
     AppearanceSettings, PrivacySettings, ContentPreferences, BrowserSettings,
-    DownloadRequest, Download, DownloadUpdate
+    DownloadRequest, Download, DownloadUpdate,
+    Profile, CreateProfile, ParentalControls, ScreenTimeSettings, 
+    ScreenTimeLog, ProfileActivity
 )
 from auth import (
     hash_password, verify_password, create_access_token,
