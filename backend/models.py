@@ -24,6 +24,15 @@ class User(BaseModel):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     adult_pin: Optional[str] = None  # 4-digit PIN for adult content
     adult_pin_enabled: bool = False
+    
+    # External service connections
+    trakt_access_token: Optional[str] = None
+    tmdb_api_key: Optional[str] = None
+    omdb_api_key: Optional[str] = None
+    imdb_api_key: Optional[str] = None
+    real_debrid_api_key: Optional[str] = None
+    all_debrid_api_key: Optional[str] = None
+    premiumize_api_key: Optional[str] = None
 
 
 class UserResponse(BaseModel):
@@ -31,6 +40,11 @@ class UserResponse(BaseModel):
     email: EmailStr
     name: Optional[str] = None
     adult_pin_enabled: bool
+    has_trakt: bool = False
+    has_tmdb: bool = False
+    has_omdb: bool = False
+    has_imdb: bool = False
+    has_debrid: bool = False
 
 
 # Watchlist Models
