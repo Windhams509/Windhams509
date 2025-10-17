@@ -44,6 +44,7 @@ export const contentAPI = {
 // Streaming Sources
 export const sourcesAPI = {
   search: (query) => api.get('/sources/search', { params: { query } }),
+  getDirect: (imdbId, title, year) => api.get(`/sources/direct/${imdbId}`, { params: { title, year } }),
 };
 
 // Watchlist APIs
