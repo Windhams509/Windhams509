@@ -369,6 +369,26 @@ async def search_streaming_sources(query: str):
         return {"files_found": [], "error": str(e)}
 
 
+@api_router.get("/sources/direct/{imdb_id}")
+async def get_direct_stream(imdb_id: str, title: str = None, year: str = None):
+    """Get direct streaming links that play seamlessly"""
+    try:
+        # Get direct streaming URLs using scraper
+        result = await video_scraper.get_direct_stream_url(
+            movie_title=title,
+            year=year,
+            imdb_id=imdb_id
+        )
+        return result
+    except Exception as e:
+        logger.error(f"Error getting direct stream: {e}")
+        return {
+            "success": False,
+            "error": str(e),
+            "sources": []
+        }
+
+
 # ==================== WATCHLIST ROUTES ====================
 
 @api_router.post("/watchlist")
