@@ -16,7 +16,8 @@ from models import (
     UserCreate, UserLogin, UserResponse, User,
     WatchlistItem, WatchHistory, Favorite,
     PINCreate, PINVerify, AddToWatchlistRequest, UpdateProgressRequest,
-    ContentSearchRequest
+    ContentSearchRequest, UpdateProfile, ChangePassword, UpdatePIN,
+    ConnectService, DisconnectService, AddRepository, Repository, ToggleRepository
 )
 from auth import (
     hash_password, verify_password, create_access_token,
