@@ -9,9 +9,13 @@ const Home = () => {
   const [trending, setTrending] = useState([]);
   const [movies, setMovies] = useState([]);
   const [tvShows, setTVShows] = useState([]);
-  const [neilShotContent, setNeilShotContent] = useState([]);
+  const [millsshotContent, setMillsshotContent] = useState([]);
   const [gammaContent, setGammaContent] = useState([]);
   const [adultTimeContent, setAdultTimeContent] = useState([]);
+  const [fastFranchise, setFastFranchise] = useState([]);
+  const [marvelContent, setMarvelContent] = useState([]);
+  const [dcContent, setDCContent] = useState([]);
+  const [boxSets, setBoxSets] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
