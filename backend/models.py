@@ -50,6 +50,44 @@ class User(BaseModel):
     simkl_access_token: Optional[str] = None
     kitsu_access_token: Optional[str] = None
     anilist_access_token: Optional[str] = None
+    
+    # Subtitle Settings
+    opensubtitles_username: Optional[str] = None
+    opensubtitles_password: Optional[str] = None
+    subscene_username: Optional[str] = None
+    addic7ed_username: Optional[str] = None
+    addic7ed_password: Optional[str] = None
+    
+    # User Preferences
+    subtitle_language: str = "en"
+    subtitle_size: str = "medium"  # small, medium, large
+    subtitle_color: str = "#FFFFFF"
+    subtitle_background: str = "rgba(0,0,0,0.7)"
+    subtitle_delay: int = 0  # milliseconds
+    auto_load_subtitles: bool = True
+    
+    # Playback Settings
+    default_quality: str = "auto"  # auto, 1080p, 720p, 480p, 360p
+    autoplay_next: bool = True
+    skip_intro_duration: int = 85  # seconds
+    hardware_acceleration: bool = True
+    buffer_size: str = "medium"  # small, medium, large
+    
+    # Appearance Settings
+    theme: str = "dark"  # dark, light
+    accent_color: str = "#DC2626"  # red-600
+    poster_size: str = "medium"  # small, medium, large
+    view_mode: str = "grid"  # grid, list
+    
+    # Privacy Settings
+    track_watch_history: bool = True
+    show_continue_watching: bool = True
+    auto_logout_minutes: int = 0  # 0 = disabled
+    
+    # Content Preferences
+    preferred_language: str = "en"
+    hide_genres: List[str] = Field(default_factory=list)
+    maturity_filter: str = "all"  # all, pg13, r, nc17
 
 
 class UserResponse(BaseModel):
