@@ -43,9 +43,10 @@ const Login = () => {
       <div className="max-w-md w-full mx-4">
         <div className="bg-gray-800 border border-gray-700 rounded-2xl shadow-2xl p-8">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-white mb-2">
-              Stream<span className="text-red-600">Flix</span>
+            <h1 className="text-4xl font-bold text-white mb-1">
+              The <span className="text-red-600">Watchen</span> Place
             </h1>
+            <p className="text-sm text-gray-400 italic mb-2">presented by The Gettin Place</p>
             <p className="text-gray-400">
               {isLogin ? 'Welcome back!' : 'Join us today'}
             </p>
