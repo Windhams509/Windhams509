@@ -862,6 +862,11 @@ async def get_favorites(current_user: TokenData = Depends(get_current_user)):
         {"user_id": current_user.user_id}
     ).sort("added_at", -1).to_list(1000)
     
+    # Remove MongoDB ObjectId fields to avoid serialization issues
+    for item in favorites:
+        if "_id" in item:
+            del item["_id"]
+    
     return favorites
 
 
