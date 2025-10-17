@@ -1166,6 +1166,405 @@ async def clear_all_downloads(current_user: TokenData = Depends(get_current_user
 
 
 
+# ==================== FAMILY ACCOUNTS & PARENTAL CONTROLS ====================
+
+@api_router.post("/profiles")
+async def create_profile(
+    profile_data: CreateProfile,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Create a new profile (parent can create profiles for kids)"""
+    try:
+        # Check profile limit (max 5 profiles per account)
+        existing_profiles = await db.profiles.count_documents({"user_id": current_user.user_id})
+        if existing_profiles >= 5:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Maximum 5 profiles per account"
+            )
+        
+        # Create profile
+        profile = Profile(
+            user_id=current_user.user_id,
+            name=profile_data.name,
+            is_child=profile_data.is_child,
+            age=profile_data.age,
+            pin=hash_password(profile_data.pin) if profile_data.pin else None,
+            maturity_rating=profile_data.maturity_rating if profile_data.is_child else "all"
+        )
+        
+        await db.profiles.insert_one(profile.model_dump())
+        
+        return {
+            "message": "Profile created successfully",
+            "profile_id": profile.id,
+            "profile": {
+                "id": profile.id,
+                "name": profile.name,
+                "is_child": profile.is_child,
+                "age": profile.age
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error creating profile: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create profile"
+        )
+
+
+@api_router.get("/profiles")
+async def get_profiles(current_user: TokenData = Depends(get_current_user)):
+    """Get all profiles for current account"""
+    try:
+        profiles = await db.profiles.find({
+            "user_id": current_user.user_id,
+            "is_active": True
+        }).to_list(10)
+        
+        # Remove sensitive data
+        for profile in profiles:
+            if "_id" in profile:
+                del profile["_id"]
+            if "pin" in profile:
+                profile["has_pin"] = bool(profile["pin"])
+                del profile["pin"]
+        
+        return {"profiles": profiles}
+        
+    except Exception as e:
+        logger.error(f"Error getting profiles: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get profiles"
+        )
+
+
+@api_router.get("/profiles/{profile_id}")
+async def get_profile(
+    profile_id: str,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Get specific profile details"""
+    try:
+        profile = await db.profiles.find_one({
+            "id": profile_id,
+            "user_id": current_user.user_id
+        })
+        
+        if not profile:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Profile not found"
+            )
+        
+        if "_id" in profile:
+            del profile["_id"]
+        if "pin" in profile:
+            profile["has_pin"] = bool(profile["pin"])
+            del profile["pin"]
+        
+        return {"profile": profile}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting profile: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get profile"
+        )
+
+
+@api_router.put("/profiles/{profile_id}/parental-controls")
+async def update_parental_controls(
+    profile_id: str,
+    controls: ParentalControls,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Update parental controls for a child profile"""
+    try:
+        # Verify profile belongs to user
+        profile = await db.profiles.find_one({
+            "id": profile_id,
+            "user_id": current_user.user_id
+        })
+        
+        if not profile:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Profile not found"
+            )
+        
+        update_fields = {}
+        if controls.maturity_rating:
+            update_fields["maturity_rating"] = controls.maturity_rating
+        if controls.allowed_genres is not None:
+            update_fields["allowed_genres"] = controls.allowed_genres
+        if controls.blocked_content is not None:
+            update_fields["blocked_content"] = controls.blocked_content
+        
+        if update_fields:
+            await db.profiles.update_one(
+                {"id": profile_id},
+                {"$set": update_fields}
+            )
+        
+        return {"message": "Parental controls updated successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating parental controls: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update parental controls"
+        )
+
+
+@api_router.put("/profiles/{profile_id}/screen-time")
+async def update_screen_time(
+    profile_id: str,
+    settings: ScreenTimeSettings,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Update screen time settings for a profile"""
+    try:
+        # Verify profile belongs to user
+        profile = await db.profiles.find_one({
+            "id": profile_id,
+            "user_id": current_user.user_id
+        })
+        
+        if not profile:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Profile not found"
+            )
+        
+        update_fields = {}
+        if settings.screen_time_enabled is not None:
+            update_fields["screen_time_enabled"] = settings.screen_time_enabled
+        if settings.daily_limit_minutes is not None:
+            update_fields["daily_limit_minutes"] = settings.daily_limit_minutes
+        if settings.allowed_start_time is not None:
+            update_fields["allowed_start_time"] = settings.allowed_start_time
+        if settings.allowed_end_time is not None:
+            update_fields["allowed_end_time"] = settings.allowed_end_time
+        
+        if update_fields:
+            await db.profiles.update_one(
+                {"id": profile_id},
+                {"$set": update_fields}
+            )
+        
+        return {"message": "Screen time settings updated successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating screen time: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update screen time"
+        )
+
+
+@api_router.get("/profiles/{profile_id}/screen-time/status")
+async def get_screen_time_status(
+    profile_id: str,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Check if profile has screen time remaining"""
+    try:
+        profile = await db.profiles.find_one({
+            "id": profile_id,
+            "user_id": current_user.user_id
+        })
+        
+        if not profile:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Profile not found"
+            )
+        
+        # Check if screen time is enabled
+        if not profile.get("screen_time_enabled"):
+            return {
+                "allowed": True,
+                "message": "Screen time not enabled"
+            }
+        
+        # Check date reset
+        today = datetime.now(timezone.utc).date().isoformat()
+        last_reset = profile.get("last_reset_date")
+        
+        time_used = profile.get("time_used_today", 0)
+        if last_reset != today:
+            # Reset for new day
+            time_used = 0
+            await db.profiles.update_one(
+                {"id": profile_id},
+                {"$set": {
+                    "time_used_today": 0,
+                    "last_reset_date": today
+                }}
+            )
+        
+        # Check time restrictions
+        now = datetime.now(timezone.utc)
+        current_time = now.strftime("%H:%M")
+        
+        allowed_start = profile.get("allowed_start_time")
+        allowed_end = profile.get("allowed_end_time")
+        
+        if allowed_start and allowed_end:
+            if not (allowed_start <= current_time <= allowed_end):
+                return {
+                    "allowed": False,
+                    "message": f"Screen time only allowed between {allowed_start} and {allowed_end}",
+                    "reason": "outside_allowed_hours"
+                }
+        
+        # Check daily limit
+        daily_limit = profile.get("daily_limit_minutes", 120)
+        remaining = daily_limit - time_used
+        
+        if remaining <= 0:
+            return {
+                "allowed": False,
+                "message": "Daily screen time limit reached",
+                "reason": "limit_reached",
+                "time_used": time_used,
+                "daily_limit": daily_limit
+            }
+        
+        return {
+            "allowed": True,
+            "remaining_minutes": remaining,
+            "time_used": time_used,
+            "daily_limit": daily_limit
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error checking screen time status: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to check screen time status"
+        )
+
+
+@api_router.post("/profiles/{profile_id}/activity")
+async def log_profile_activity(
+    profile_id: str,
+    activity: ProfileActivity,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Log activity for parental monitoring"""
+    try:
+        profile = await db.profiles.find_one({
+            "id": profile_id,
+            "user_id": current_user.user_id
+        })
+        
+        if not profile:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Profile not found"
+            )
+        
+        # Log activity
+        await db.profile_activity.insert_one(activity.model_dump())
+        
+        return {"message": "Activity logged"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error logging activity: {e}")
+        # Don't fail the request if logging fails
+        return {"message": "Activity logging failed", "error": str(e)}
+
+
+@api_router.get("/profiles/{profile_id}/activity")
+async def get_profile_activity(
+    profile_id: str,
+    current_user: TokenData = Depends(get_current_user),
+    limit: int = 50
+):
+    """Get activity history for a profile (for parents)"""
+    try:
+        profile = await db.profiles.find_one({
+            "id": profile_id,
+            "user_id": current_user.user_id
+        })
+        
+        if not profile:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Profile not found"
+            )
+        
+        activities = await db.profile_activity.find({
+            "profile_id": profile_id
+        }).sort("timestamp", -1).limit(limit).to_list(limit)
+        
+        for activity in activities:
+            if "_id" in activity:
+                del activity["_id"]
+        
+        return {"activities": activities}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting activity: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get activity"
+        )
+
+
+@api_router.delete("/profiles/{profile_id}")
+async def delete_profile(
+    profile_id: str,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Delete a profile"""
+    try:
+        result = await db.profiles.update_one(
+            {
+                "id": profile_id,
+                "user_id": current_user.user_id
+            },
+            {"$set": {"is_active": False}}
+        )
+        
+        if result.modified_count == 0:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Profile not found"
+            )
+        
+        return {"message": "Profile deleted successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting profile: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to delete profile"
+        )
+
+
+
+
 
 
 # ==================== CONTENT DISCOVERY ROUTES ====================
