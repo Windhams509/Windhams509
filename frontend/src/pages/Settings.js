@@ -202,6 +202,83 @@ const Settings = () => {
     setLoading(false);
   };
 
+
+  // ==================== DEVICE CODE AUTHENTICATION ====================
+  
+  const handleDeviceCodeAuth = async (serviceName) => {
+    setLoading(true);
+    try {
+      const response = await api.post('/user/device-auth/start', {
+        service_name: serviceName
+      });
+      
+      const { device_code, user_code, verification_url, interval } = response.data;
+      
+      // Show modal with device code
+      setDeviceCodeModal({
+        show: true,
+        service: serviceName,
+        userCode: user_code,
+        verificationUrl: verification_url,
+        deviceCode: device_code,
+        polling: true
+      });
+      
+      // Start polling for authorization
+      startPolling(serviceName, device_code, interval);
+      
+    } catch (error) {
+      showMessage('error', error.response?.data?.detail || `Failed to start authentication for ${serviceName}`);
+    }
+    setLoading(false);
+  };
+
+  const startPolling = async (serviceName, deviceCode, interval) => {
+    const pollInterval = setInterval(async () => {
+      try {
+        const response = await api.post('/user/device-auth/poll', {
+          service_name: serviceName,
+          device_code: deviceCode
+        });
+        
+        if (response.data.status === 'authorized') {
+          clearInterval(pollInterval);
+          setDeviceCodeModal({ ...deviceCodeModal, show: false, polling: false });
+          showMessage('success', `${serviceName} connected successfully!`);
+          await loadConnectedServices();
+        }
+      } catch (error) {
+        if (error.response?.status === 400 || error.response?.status === 404) {
+          // Code expired or not found
+          clearInterval(pollInterval);
+          setDeviceCodeModal({ ...deviceCodeModal, show: false, polling: false });
+          showMessage('error', 'Authentication code expired. Please try again.');
+        }
+      }
+    }, interval * 1000);
+    
+    // Stop polling after 10 minutes
+    setTimeout(() => {
+      clearInterval(pollInterval);
+      if (deviceCodeModal.polling) {
+        setDeviceCodeModal({ ...deviceCodeModal, show: false, polling: false });
+        showMessage('error', 'Authentication timed out. Please try again.');
+      }
+    }, 600000);
+  };
+
+  const closeDeviceCodeModal = () => {
+    setDeviceCodeModal({ 
+      show: false, 
+      service: '', 
+      userCode: '', 
+      verificationUrl: '',
+      deviceCode: '',
+      polling: false 
+    });
+  };
+
+
   // ==================== REPOSITORIES ====================
   
   const loadRepositories = async () => {
