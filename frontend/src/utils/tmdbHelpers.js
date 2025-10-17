@@ -1,9 +1,12 @@
-// TMDB image helper functions
+// Image helper functions - works with both TMDB and OMDb
 const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p';
 
 export const getTMDBImageUrl = (path, size = 'w500') => {
   if (!path) return null;
-  return `${TMDB_IMAGE_BASE}/${size}${path}`;
+  // If it's already a full URL (OMDb), return as is
+  if (path.startsWith('http')) return path;
+  // Otherwise, it's a TMDB path
+  return `${TMDB_IMAGE_BASE}/${size}${path}`  
 };
 
 export const getPosterUrl = (path, size = 'w500') => getTMDBImageUrl(path, size);
@@ -17,6 +20,12 @@ export const isAdultContent = (content) => {
   // Check if content is adult rated
   if (content.adult) return true;
   
+  // Check OMDb rating
+  if (content.Rated) {
+    const adultRatings = ['R', 'NC-17', 'TV-MA', 'X', '18', '18+'];
+    return adultRatings.includes(content.Rated.toUpperCase());
+  }
+  
   // Check certification/rating
   const certification = content.certification || content.content_ratings?.results?.[0]?.rating;
   if (certification) {
@@ -28,10 +37,22 @@ export const isAdultContent = (content) => {
 };
 
 // Format runtime
-export const formatRuntime = (minutes) => {
-  if (!minutes) return 'N/A';
-  const hours = Math.floor(minutes / 60);
-  const mins = minutes % 60;
+export const formatRuntime = (runtime) => {
+  // Handle OMDb format "148 min"
+  if (typeof runtime === 'string') {
+    const minutes = parseInt(runtime);
+    if (!isNaN(minutes)) {
+      const hours = Math.floor(minutes / 60);
+      const mins = minutes % 60;
+      return `${hours}h ${mins}m`;
+    }
+    return runtime;
+  }
+  
+  // Handle TMDB format (number)
+  if (!runtime) return 'N/A';
+  const hours = Math.floor(runtime / 60);
+  const mins = runtime % 60;
   return `${hours}h ${mins}m`;
 };
 
@@ -46,4 +67,19 @@ export const formatDate = (dateString) => {
 export const getYear = (dateString) => {
   if (!dateString) return '';
   return new Date(dateString).getFullYear();
+};
+
+// Get title from content (supports both TMDB and OMDb formats)
+export const getTitle = (content) => {
+  return content.Title || content.title || content.name || 'Untitled';
+};
+
+// Get poster from content (supports both formats)
+export const getPoster = (content) => {
+  return content.Poster || content.poster_path || null;
+};
+
+// Get rating from content
+export const getRating = (content) => {
+  return content.imdbRating || content.vote_average || 'N/A';
 };
