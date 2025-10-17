@@ -202,6 +202,20 @@ async def discover_tv(genre: Optional[int] = None, page: int = 1, sort_by: str =
 async def search_content(q: str, page: int = 1, type: str = "multi"):
     """Search for movies and TV shows"""
     try:
+        # Try RapidAPI Movie DB first (more reliable)
+        rapidapi_result = await rapidapi_movie_db.search(q, page, type if type != "multi" else None)
+        
+        if rapidapi_result.get("Response") == "True":
+            # Format the response to match our expected structure
+            search_results = rapidapi_result.get("Search", [])
+            return {
+                "results": search_results,
+                "total_results": int(rapidapi_result.get("totalResults", 0)),
+                "page": page,
+                "source": "rapidapi_movie_db"
+            }
+        
+        # Fallback to TMDB if RapidAPI fails
         if type == "movie":
             data = await tmdb_client.search_movies(q, page)
         elif type == "tv":
@@ -212,7 +226,8 @@ async def search_content(q: str, page: int = 1, type: str = "multi"):
             tv = await tmdb_client.search_tv(q, page)
             data = {
                 "movies": movies,
-                "tv": tv
+                "tv": tv,
+                "source": "tmdb"
             }
         return data
     except Exception as e:
