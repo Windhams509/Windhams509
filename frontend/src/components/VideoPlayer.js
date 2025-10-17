@@ -130,7 +130,7 @@ const VideoPlayer = ({ movie, sources, onClose }) => {
           </div>
 
           {/* VLC Instructions */}
-          <div className="bg-blue-900/20 border border-blue-600 rounded-lg p-4">
+          <div className="bg-blue-900/20 border border-blue-600 rounded-lg p-4 mb-4">
             <h3 className="text-white font-semibold mb-2 flex items-center text-sm">
               📱 Watch on VLC Player (Best Quality)
             </h3>
@@ -142,6 +142,15 @@ const VideoPlayer = ({ movie, sources, onClose }) => {
             </ol>
             <p className=\"text-gray-400 text-xs mt-2\">
               ✨ VLC provides better quality, subtitles, and playback controls
+            </p>
+          </div>
+
+          {/* Legal Disclaimer */}
+          <div className="bg-yellow-900/20 border border-yellow-700 rounded-lg p-4">
+            <p className="text-yellow-200 text-xs">
+              ⚠️ <strong>Disclaimer:</strong> This video is hosted on a third-party server ({currentSource?.host}). 
+              The Watchen Place does not host, upload, or control this content. 
+              You are accessing content from an external source at your own discretion.
             </p>
           </div>
         </div>
