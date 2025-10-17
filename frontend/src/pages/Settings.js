@@ -97,6 +97,7 @@ const Settings = () => {
       });
       loadConnectedServices();
       loadRepositories();
+      loadUserPreferences();
     }
   }, [user]);
 
