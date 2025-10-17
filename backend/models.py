@@ -25,14 +25,31 @@ class User(BaseModel):
     adult_pin: Optional[str] = None  # 4-digit PIN for adult content
     adult_pin_enabled: bool = False
     
-    # External service connections
+    # External service connections - Content Databases
     trakt_access_token: Optional[str] = None
     tmdb_api_key: Optional[str] = None
     omdb_api_key: Optional[str] = None
     imdb_api_key: Optional[str] = None
+    tvdb_api_key: Optional[str] = None
+    fanart_api_key: Optional[str] = None
+    mdblist_api_key: Optional[str] = None
+    
+    # Debrid Services
     real_debrid_api_key: Optional[str] = None
     all_debrid_api_key: Optional[str] = None
     premiumize_api_key: Optional[str] = None
+    torbox_api_key: Optional[str] = None
+    debrid_link_api_key: Optional[str] = None
+    
+    # Media Servers
+    plex_token: Optional[str] = None
+    emby_api_key: Optional[str] = None
+    jellyfin_api_key: Optional[str] = None
+    
+    # Other Services
+    simkl_access_token: Optional[str] = None
+    kitsu_access_token: Optional[str] = None
+    anilist_access_token: Optional[str] = None
 
 
 class UserResponse(BaseModel):
