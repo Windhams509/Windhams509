@@ -232,6 +232,14 @@ const Home = () => {
 
       {/* Content Rows */}
       <div className="py-8">
+        {/* Personalized Content - Top Priority */}
+        {continueWatching.length > 0 && (
+          <ContentRow title="Continue Watching" items={continueWatching} />
+        )}
+        {recommendations.length > 0 && (
+          <ContentRow title="Recommended For You" items={recommendations} />
+        )}
+
         <ContentRow title="Trending Now" items={trending.slice(1)} />
         <ContentRow title="Popular Movies" items={movies} />
         <ContentRow title="Popular TV Shows" items={tvShows} />
