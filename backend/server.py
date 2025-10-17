@@ -276,28 +276,20 @@ async def search_content(q: str, page: int = 1, type: str = "multi"):
 
 @api_router.get("/content/movie/{movie_id}")
 async def get_movie_details(movie_id: str):
-    """Get detailed movie information"""
+    """Get detailed movie information using OMDb"""
     try:
-        # Try RapidAPI Movie DB first if it looks like an IMDb ID
+        # Use OMDb (we have working keys)
         if movie_id.startswith("tt"):
-            rapidapi_data = await rapidapi_movie_db.get_by_id(imdb_id=movie_id)
-            if rapidapi_data.get("Response") == "True":
-                return rapidapi_data
+            # IMDb ID
+            omdb_data = await omdb_client.get_by_imdb_id(movie_id)
+        else:
+            # Assume it's a title
+            omdb_data = await omdb_client.search(movie_id)
         
-        # Otherwise try TMDB
-        tmdb_data = await tmdb_client.get_movie_details(int(movie_id))
+        if omdb_data.get("Response") == "True":
+            return omdb_data
         
-        # Try to get additional data from other sources
-        if tmdb_data.get("imdb_id"):
-            try:
-                omdb_data = await omdb_client.get_by_imdb_id(tmdb_data["imdb_id"])
-                mdblist_data = await mdblist_client.get_by_imdb_id(tmdb_data["imdb_id"])
-                tmdb_data["omdb"] = omdb_data
-                tmdb_data["mdblist"] = mdblist_data
-            except Exception as e:
-                logger.warning(f"Failed to fetch additional data: {e}")
-        
-        return tmdb_data
+        return {"Response": "False", "Error": "Movie not found"}
     except Exception as e:
         logger.error(f"Error fetching movie details: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch movie details")
