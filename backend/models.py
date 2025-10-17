@@ -370,6 +370,55 @@ class ProfileActivity(BaseModel):
 
 
 
+
+
+# Parental Notification & Approval Models
+class ContentApprovalRequest(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str  # Parent account
+    profile_id: str  # Child profile requesting
+    content_id: str
+    content_title: str
+    content_type: str  # movie, tv, episode
+    poster_path: Optional[str] = None
+    
+    # Why it was flagged
+    maturity_rating: str  # PG-13, R, NC-17
+    content_warnings: List[str] = Field(default_factory=list)  # ["violence", "nudity", "language"]
+    reason: str  # "maturity_rating", "blocked_genre", "explicit_content"
+    
+    # Status
+    status: str = "pending"  # pending, approved, denied
+    parent_response: Optional[str] = None  # Parent's note
+    approved_at: Optional[datetime] = None
+    expires_at: datetime  # Auto-deny after 24 hours
+    
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class ApprovalResponse(BaseModel):
+    request_id: str
+    action: str  # "approve", "deny"
+    note: Optional[str] = None
+    approve_similar: bool = False  # Approve all with same rating
+    apply_to_profile: bool = False  # Update profile settings
+
+
+class ParentNotification(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str  # Parent account
+    profile_id: str  # Child profile
+    notification_type: str  # "content_request", "screen_time_limit", "blocked_attempt"
+    title: str
+    message: str
+    content_id: Optional[str] = None
+    request_id: Optional[str] = None  # Link to approval request
+    
+    read: bool = False
+    read_at: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
 # Content Request/Response Models
 class ContentSearchRequest(BaseModel):
     query: str
