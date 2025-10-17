@@ -93,6 +93,25 @@ const Home = () => {
     }
   };
 
+
+  const loadDocumentaries = async () => {
+    try {
+      // Search for documentaries
+      const [docs, musicianDocs, iAm] = await Promise.all([
+        contentAPI.search('Documentary'),
+        contentAPI.search('Musician Documentary'),
+        contentAPI.search('I Am Documentary'),
+      ]);
+
+      setDocumentaries(docs.data.results?.slice(0, 20) || []);
+      setMusicianDocs(musicianDocs.data.results?.slice(0, 20) || []);
+      setIAmSeries(iAm.data.results?.slice(0, 20) || []);
+    } catch (error) {
+      console.error('Error loading documentaries:', error);
+    }
+  };
+
+
   const ContentCard = ({ item }) => {
     const title = getTitle(item);
     const poster = getPoster(item);
