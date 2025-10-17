@@ -252,36 +252,23 @@ async def discover_tv(genre: Optional[int] = None, page: int = 1, sort_by: str =
 
 @api_router.get("/content/search")
 async def search_content(q: str, page: int = 1, type: str = "multi"):
-    """Search for movies and TV shows"""
+    """Search for movies and TV shows using OMDb"""
     try:
-        # Try RapidAPI Movie DB first (more reliable)
-        rapidapi_result = await rapidapi_movie_db.search(q, page, type if type != "multi" else None)
+        # Use OMDb for search (we have working keys for this)
+        omdb_result = await omdb_client.search(q)
         
-        if rapidapi_result.get("Response") == "True":
-            # Format the response to match our expected structure
-            search_results = rapidapi_result.get("Search", [])
+        if omdb_result.get("Response") == "True":
             return {
-                "results": search_results,
-                "total_results": int(rapidapi_result.get("totalResults", 0)),
-                "page": page,
-                "source": "rapidapi_movie_db"
+                "results": [omdb_result],  # OMDb returns single result for title search
+                "source": "omdb"
             }
         
-        # Fallback to TMDB if RapidAPI fails
-        if type == "movie":
-            data = await tmdb_client.search_movies(q, page)
-        elif type == "tv":
-            data = await tmdb_client.search_tv(q, page)
-        else:
-            # Search both
-            movies = await tmdb_client.search_movies(q, page)
-            tv = await tmdb_client.search_tv(q, page)
-            data = {
-                "movies": movies,
-                "tv": tv,
-                "source": "tmdb"
-            }
-        return data
+        # If no results, return empty
+        return {
+            "results": [],
+            "source": "omdb",
+            "message": omdb_result.get("Error", "No results found")
+        }
     except Exception as e:
         logger.error(f"Error searching content: {e}")
         raise HTTPException(status_code=500, detail="Failed to search content")
