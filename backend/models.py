@@ -245,6 +245,15 @@ class ContentPreferences(BaseModel):
     maturity_filter: Optional[str] = None
 
 
+
+class BrowserSettings(BaseModel):
+    preferred_browser: Optional[str] = None
+    enable_tab_grouping: Optional[bool] = None
+    open_links_in_new_tab: Optional[bool] = None
+    browser_auto_organize: Optional[bool] = None
+
+
+
 # Content Request/Response Models
 class ContentSearchRequest(BaseModel):
     query: str
