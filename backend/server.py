@@ -272,22 +272,39 @@ async def discover_tv(genre: Optional[int] = None, page: int = 1, sort_by: str =
 
 @api_router.get("/content/search")
 async def search_content(q: str, page: int = 1, type: str = "multi"):
-    """Search for movies and TV shows using OMDb"""
+    """Search for movies and TV shows using custom IMDb API"""
     try:
-        # Use OMDb for search (we have working keys for this)
+        # Try custom IMDb API first (has posters!)
+        imdb_result = await imdb_client.search(q)
+        
+        if imdb_result.get("ok") and imdb_result.get("description"):
+            # Format results
+            results = []
+            for item in imdb_result["description"][:10]:  # Limit to 10 results
+                results.append({
+                    "imdbID": item.get("#IMDB_ID"),
+                    "title": item.get("#TITLE"),
+                    "year": item.get("#YEAR"),
+                    "type": "movie",
+                    "poster": item.get("#IMG_POSTER"),
+                    "actors": item.get("#ACTORS"),
+                })
+            
+            return {"results": results, "source": "imdb_custom"}
+        
+        # Fallback to OMDb
         omdb_result = await omdb_client.search(q)
         
         if omdb_result.get("Response") == "True":
             return {
-                "results": [omdb_result],  # OMDb returns single result for title search
+                "results": [omdb_result],
                 "source": "omdb"
             }
         
-        # If no results, return empty
         return {
             "results": [],
-            "source": "omdb",
-            "message": omdb_result.get("Error", "No results found")
+            "source": "none",
+            "message": "No results found"
         }
     except Exception as e:
         logger.error(f"Error searching content: {e}")
