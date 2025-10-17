@@ -7,7 +7,11 @@ import os
 import logging
 from typing import Optional, List
 
-# Import local modules
+# Load environment variables FIRST
+ROOT_DIR = Path(__file__).parent
+load_dotenv(ROOT_DIR / '.env')
+
+# Import local modules AFTER loading env variables
 from models import (
     UserCreate, UserLogin, UserResponse, User,
     WatchlistItem, WatchHistory, Favorite,
@@ -22,10 +26,6 @@ from api_clients import (
     tmdb_client, omdb_client, mdblist_client,
     fanart_client, filepursuit_client
 )
-
-# Load environment variables
-ROOT_DIR = Path(__file__).parent
-load_dotenv(ROOT_DIR / '.env')
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
