@@ -188,6 +188,33 @@ const Home = () => {
         <ContentRow title="Trending Now" items={trending.slice(1)} />
         <ContentRow title="Popular Movies" items={movies} />
         <ContentRow title="Popular TV Shows" items={tvShows} />
+        
+        {/* Production Companies */}
+        {millsshotContent.length > 0 && (
+          <ContentRow title="Millsshot Productions" items={millsshotContent} />
+        )}
+        {gammaContent.length > 0 && (
+          <ContentRow title="Gamma Productions" items={gammaContent} />
+        )}
+        {adultTimeContent.length > 0 && (
+          <ContentRow title="Adult Time Productions" items={adultTimeContent} />
+        )}
+
+        {/* Franchises */}
+        {fastFranchise.length > 0 && (
+          <ContentRow title="Fast & Furious Franchise" items={fastFranchise} />
+        )}
+        {marvelContent.length > 0 && (
+          <ContentRow title="Marvel Cinematic Universe" items={marvelContent} />
+        )}
+        {dcContent.length > 0 && (
+          <ContentRow title="DC Universe" items={dcContent} />
+        )}
+
+        {/* Box Sets & Collections */}
+        {boxSets.length > 0 && (
+          <ContentRow title="Box Sets & Collections" items={boxSets} />
+        )}
       </div>
 
       <Footer />
