@@ -11,7 +11,7 @@ import uuid
 from typing import Dict, Any, Optional
 
 # Backend URL from frontend environment
-BACKEND_URL = "https://apk-collection.preview.emergentagent.com/api"
+BACKEND_URL = "https://watchen-place.preview.emergentagent.com/api"
 
 class StreamFlixTester:
     def __init__(self):
