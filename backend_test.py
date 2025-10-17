@@ -791,6 +791,11 @@ class StreamFlixTester:
             await self.test_favorites_operations()
             await self.test_watch_history_operations()
             await self.test_adult_pin_operations()
+            
+            # NEW SETTINGS SYSTEM TESTS
+            await self.test_user_settings_endpoints()
+            await self.test_external_services_endpoints()
+            await self.test_repository_system_endpoints()
         
         # Error handling
         await self.test_error_handling()
