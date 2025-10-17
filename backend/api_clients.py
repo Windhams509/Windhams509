@@ -320,6 +320,38 @@ class RapidAPIMovieDB:
                 return {"Response": "False", "Error": str(e)}
 
 
+class IMDbClient:
+    """Custom IMDb API Client"""
+    BASE_URL = "https://imdb.iamidiotareyoutoo.com"
+    
+    async def search(self, query: str) -> Dict[str, Any]:
+        """Search for movies/TV shows"""
+        async with httpx.AsyncClient() as client:
+            try:
+                response = await client.get(
+                    f"{self.BASE_URL}/search",
+                    params={"q": query},
+                    timeout=10.0
+                )
+                return response.json()
+            except Exception as e:
+                logger.error(f"IMDb API error: {e}")
+                return {"ok": False, "error": str(e)}
+    
+    async def get_by_id(self, imdb_id: str) -> Dict[str, Any]:
+        """Get movie/TV details by IMDb ID"""
+        async with httpx.AsyncClient() as client:
+            try:
+                response = await client.get(
+                    f"{self.BASE_URL}/title/{imdb_id}",
+                    timeout=10.0
+                )
+                return response.json()
+            except Exception as e:
+                logger.error(f"IMDb API error: {e}")
+                return {"ok": False, "error": str(e)}
+
+
 # Initialize all clients
 tmdb_client = TMDBClient()
 omdb_client = OMDBClient()
@@ -327,3 +359,4 @@ mdblist_client = MDBListClient()
 fanart_client = FanartClient()
 filepursuit_client = FilePursuitClient()
 rapidapi_movie_db = RapidAPIMovieDB()
+imdb_client = IMDbClient()
