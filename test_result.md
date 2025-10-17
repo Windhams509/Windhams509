@@ -188,10 +188,6 @@ backend:
       - working: "NA"
         agent: "main"
         comment: "Added Kodi-like repository system endpoints: add, list, toggle enable/disable, and delete repositories"
-    status_history:
-      - working: "NA"
-        agent: "main"
-        comment: "Implemented all routes: auth, content discovery, watchlist, favorites, history, PIN protection, streaming sources. Server running successfully on port 8001"
 
 frontend:
   - task: "React app structure"
