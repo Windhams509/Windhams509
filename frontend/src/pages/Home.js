@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { contentAPI } from '../utils/api';
 import { Link } from 'react-router-dom';
-import { getPosterUrl } from '../utils/tmdbHelpers';
+import { getPosterUrl, getTitle, getPoster, getRating } from '../utils/tmdbHelpers';
 import Navbar from '../components/Navbar';
 
 const Home = () => {
@@ -32,20 +32,22 @@ const Home = () => {
     }
   };
 
-  const ContentCard = ({ item, mediaType }) => {
-    const type = mediaType || (item.title ? 'movie' : 'tv');
-    const title = item.title || item.name;
-    const posterPath = getPosterUrl(item.poster_path);
+  const ContentCard = ({ item }) => {
+    const title = getTitle(item);
+    const poster = getPoster(item);
+    const posterUrl = getPosterUrl(poster);
+    const rating = getRating(item);
+    const itemId = item.imdbID || item.id;
 
     return (
       <Link
-        to={`/${type}/${item.id}`}
+        to={`/movie/${itemId}`}
         className="group relative block flex-shrink-0 w-48 transform transition-transform duration-200 hover:scale-105"
       >
         <div className="relative overflow-hidden rounded-lg">
-          {posterPath ? (
+          {posterUrl ? (
             <img
-              src={posterPath}
+              src={posterUrl}
               alt={title}
               className="w-full h-72 object-cover"
             />
@@ -58,7 +60,7 @@ const Home = () => {
           <div className="absolute bottom-0 left-0 right-0 p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-200">
             <p className="text-white font-semibold text-sm line-clamp-2">{title}</p>
             <p className="text-gray-300 text-xs mt-1">
-              {item.vote_average ? `⭐ ${item.vote_average.toFixed(1)}` : 'N/A'}
+              {rating !== 'N/A' ? `⭐ ${rating}` : item.year || 'N/A'}
             </p>
           </div>
         </div>
@@ -66,12 +68,12 @@ const Home = () => {
     );
   };
 
-  const ContentRow = ({ title, items, mediaType }) => (
+  const ContentRow = ({ title, items }) => (
     <div className="mb-8">
       <h2 className="text-2xl font-bold text-white mb-4 px-8">{title}</h2>
       <div className="flex overflow-x-auto space-x-4 px-8 pb-4 scrollbar-hide">
-        {items.map((item) => (
-          <ContentCard key={item.id} item={item} mediaType={mediaType} />
+        {items.map((item, index) => (
+          <ContentCard key={item.imdbID || item.id || index} item={item} />
         ))}
       </div>
     </div>
@@ -82,7 +84,7 @@ const Home = () => {
       <div className="min-h-screen bg-black">
         <Navbar />
         <div className="flex items-center justify-center h-screen">
-          <div className="text-white text-xl">Loading...</div>
+          <div className="text-white text-xl">Loading amazing content...</div>
         </div>
       </div>
     );
@@ -99,27 +101,26 @@ const Home = () => {
         <div
           className="relative h-[80vh] bg-cover bg-center"
           style={{
-            backgroundImage: `url(${getPosterUrl(featured.backdrop_path || featured.poster_path, 'original')})`,
+            backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.9)), url(${getPosterUrl(getPoster(featured))})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center top'
           }}
         >
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
           <div className="absolute bottom-0 left-0 p-12 max-w-2xl">
             <h1 className="text-5xl font-bold text-white mb-4">
-              {featured.title || featured.name}
+              {getTitle(featured)}
             </h1>
-            <p className="text-lg text-gray-300 mb-6 line-clamp-3">
-              {featured.overview}
+            <p className="text-lg text-gray-300 mb-2">
+              {featured.year} {featured.genre ? `• ${featured.genre}` : ''}
             </p>
-            <div className="flex space-x-4">
+            <div className="flex space-x-4 mt-6">
               <Link
-                to={`/${featured.title ? 'movie' : 'tv'}/${featured.id}`}
+                to={`/movie/${featured.imdbID || featured.id}`}
                 className="px-8 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition"
               >
-                Watch Now
-              </Link>
-              <button className="px-8 py-3 bg-gray-800/80 hover:bg-gray-700 text-white font-semibold rounded-lg transition">
                 More Info
-              </button>
+              </Link>
             </div>
           </div>
         </div>
@@ -127,9 +128,9 @@ const Home = () => {
 
       {/* Content Rows */}
       <div className="py-8">
-        <ContentRow title="Trending Now" items={trending.slice(1, 11)} />
-        <ContentRow title="Popular Movies" items={movies} mediaType="movie" />
-        <ContentRow title="Popular TV Shows" items={tvShows} mediaType="tv" />
+        <ContentRow title="Trending Now" items={trending.slice(1)} />
+        <ContentRow title="Popular Movies" items={movies} />
+        <ContentRow title="Popular TV Shows" items={tvShows} />
       </div>
     </div>
   );
