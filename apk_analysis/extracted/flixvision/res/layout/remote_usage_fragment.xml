@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:background="@color/transparent" android:layout_width="1000.0dip" android:layout_height="fill_parent" android:minWidth="1000.0dip" android:minHeight="1500.0dip"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <RelativeLayout android:background="@color/transparent" android:layout_width="fill_parent" android:layout_height="fill_parent">
+        <FrameLayout android:background="@drawable/gradient_dark_flat" android:focusable="false" android:layout_width="fill_parent" android:layout_height="fill_parent" android:alpha="0.6" />
+        <LinearLayout android:orientation="horizontal" android:layout_width="fill_parent" android:layout_height="fill_parent">
+            <ImageView android:layout_width="200.0dip" android:layout_height="fill_parent" android:layout_marginLeft="40.0dip" android:layout_marginTop="20.0dip" android:layout_marginBottom="20.0dip" android:src="@drawable/chromecast" android:scaleType="centerCrop" />
+            <LinearLayout android:orientation="vertical" android:layout_width="150.0dip" android:layout_height="300.0dip" android:layout_marginLeft="20.0dip" android:layout_marginTop="70.0dip">
+                <ImageView android:layout_gravity="center" android:layout_width="100.0dip" android:layout_height="100.0dip" android:src="@drawable/directional_pad_2" />
+                <ImageView android:layout_gravity="center" android:id="@id/mouse_pointer" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="30.0dip" android:src="@drawable/mouse_icon2" />
+            </LinearLayout>
+            <LinearLayout android:layout_gravity="center_vertical" android:orientation="vertical" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_marginLeft="20.0dip">
+                <TextView android:textSize="30.0sp" android:layout_width="fill_parent" android:layout_height="wrap_content" android:text="Mouse Toggle" android:textAlignment="textStart" />
+                <TextView android:textSize="30.0sp" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_marginTop="20.0dip" android:layout_marginRight="30.0dip" android:text="Use your remote directional Pad to move the mouse pointer and control the Player" android:textAlignment="textStart" />
+                <RelativeLayout android:id="@id/remote_fragment_close" android:background="@drawable/round_corner_back_no_transparency" android:focusable="true" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="20.0dip">
+                    <TextView android:textSize="25.0sp" android:textStyle="bold" android:textColor="@color/white" android:layout_gravity="center" android:id="@id/button3_text_view" android:focusable="false" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginLeft="15.0dip" android:layout_marginTop="10.0dip" android:layout_marginRight="15.0dip" android:layout_marginBottom="10.0dip" android:text="GOT IT" android:maxLines="2" android:layout_centerInParent="true" />
+                </RelativeLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </RelativeLayout>
+</LinearLayout>

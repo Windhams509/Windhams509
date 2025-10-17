@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView android:background="@color/colorPrimary" android:padding="20.0dip" android:layout_width="300.0dip" android:layout_height="wrap_content"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <LinearLayout android:orientation="vertical" android:background="@color/colorPrimary" android:layout_width="300.0dip" android:layout_height="wrap_content"
+      xmlns:android="http://schemas.android.com/apk/res/android">
+        <TextView android:textStyle="bold" android:textColor="#ffffffff" android:gravity="center_horizontal" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_margin="10.0dip" android:text="@string/cartoon_filter_label" />
+        <LinearLayout android:orientation="horizontal" android:id="@id/lin_genre" android:background="@drawable/selector_focus_filter_item" android:focusable="true" android:nextFocusUp="@id/lin_server" android:nextFocusDown="@id/lin_year" android:layout_width="300.0dip" android:layout_height="50.0dip" android:layout_marginTop="5.0dip">
+            <TextView android:textSize="16.0dip" android:layout_width="80.0dip" android:layout_height="wrap_content" android:layout_margin="10.0dip" android:text="Genre " />
+            <Spinner android:textStyle="bold" android:textColor="#ff222222" android:id="@id/spinner_genre" android:focusable="false" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_marginTop="10.0dip" android:layout_marginRight="10.0dip" />
+        </LinearLayout>
+        <LinearLayout android:orientation="horizontal" android:id="@id/lin_year" android:background="@drawable/selector_focus_filter_item" android:focusable="true" android:nextFocusUp="@id/lin_genre" android:nextFocusDown="@id/lin_sort" android:layout_width="300.0dip" android:layout_height="50.0dip" android:layout_marginTop="5.0dip">
+            <TextView android:textSize="16.0dip" android:layout_width="80.0dip" android:layout_height="wrap_content" android:layout_margin="10.0dip" android:text="Year " />
+            <Spinner android:textStyle="bold" android:textColor="#ff222222" android:id="@id/spinner_year" android:focusable="false" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_marginTop="10.0dip" android:layout_marginRight="10.0dip" />
+        </LinearLayout>
+        <LinearLayout android:orientation="horizontal" android:id="@id/lin_sort" android:background="@drawable/selector_focus_filter_item" android:focusable="true" android:nextFocusUp="@id/lin_year" android:nextFocusDown="@id/save_but" android:layout_width="300.0dip" android:layout_height="50.0dip" android:layout_marginTop="5.0dip">
+            <TextView android:textSize="16.0dip" android:layout_width="60.0dip" android:layout_height="wrap_content" android:layout_margin="10.0dip" android:text="@string/sort_by_label" />
+            <Spinner android:textStyle="bold" android:textColor="#ff222222" android:id="@id/spinner_sort" android:focusable="false" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_marginTop="10.0dip" android:layout_marginRight="10.0dip" />
+        </LinearLayout>
+        <View android:background="#00000000" android:layout_width="fill_parent" android:layout_height="20.0dip" />
+        <LinearLayout android:layout_width="300.0dip" android:layout_height="wrap_content">
+            <Button android:id="@id/cancel_but" android:nextFocusUp="@id/lin_year" android:layout_width="0.0dip" android:layout_height="60.0dip" android:text="CANCEL" android:layout_weight="50.0" />
+            <Button android:id="@id/save_but" android:nextFocusUp="@id/lin_year" android:layout_width="0.0dip" android:layout_height="60.0dip" android:text="APPLY" android:layout_weight="50.0" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

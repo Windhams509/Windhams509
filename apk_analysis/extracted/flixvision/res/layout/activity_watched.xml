@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:id="@id/activity_player" android:background="@color/mocie_item_color" android:layout_width="fill_parent" android:layout_height="fill_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <LinearLayout android:orientation="vertical" android:layout_width="fill_parent" android:layout_height="fill_parent">
+        <LinearLayout android:orientation="horizontal" android:layout_width="fill_parent" android:layout_height="70.0dip" android:layout_marginTop="8.0dip">
+            <TextView android:textSize="30.0sp" android:textColor="@color/white" android:layout_gravity="center" android:id="@id/adult_page_title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginLeft="20.0dip" android:text="Watched" />
+            <View android:layout_width="0.0dip" android:layout_height="fill_parent" android:layout_weight="1.0" />
+            <TextView android:textSize="14.0sp" android:textColor="@color/black" android:gravity="center" android:layout_gravity="center" android:id="@id/clear_button" android:background="@drawable/round_corner_back_button" android:paddingLeft="10.0dip" android:paddingRight="20.0dip" android:focusable="true" android:clickable="true" android:layout_width="wrap_content" android:layout_height="35.0dip" android:layout_marginLeft="6.0dip" android:layout_marginRight="10.0dip" android:text="Clear" android:drawableLeft="@drawable/ic_clear_dark" android:drawablePadding="22.0dip" android:fontFamily="@font/product_sans_bold" />
+        </LinearLayout>
+        <com.malinskiy.superrecyclerview.SuperRecyclerView android:id="@id/recyclerview_favorites" android:scrollbars="none" android:nextFocusUp="@id/search_button_adult" android:descendantFocusability="afterDescendants" android:layout_width="fill_parent" android:layout_height="fill_parent" android:layout_marginLeft="30.0dip" android:layout_marginTop="8.0dip" app:layout_moreProgress="@layout/view_more_progress" app:mainLayoutId="@layout/layout_recyclerview_verticalscroll" app:recyclerClipToPadding="false" app:scrollbarStyle="insideInset" />
+        <ProgressBar android:id="@id/progress_bar" android:visibility="gone" android:layout_width="70.0dip" android:layout_height="70.0dip" android:indeterminate="true" android:layout_centerInParent="true" />
+    </LinearLayout>
+</RelativeLayout>
