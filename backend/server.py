@@ -236,10 +236,17 @@ async def search_content(q: str, page: int = 1, type: str = "multi"):
 
 
 @api_router.get("/content/movie/{movie_id}")
-async def get_movie_details(movie_id: int):
+async def get_movie_details(movie_id: str):
     """Get detailed movie information"""
     try:
-        tmdb_data = await tmdb_client.get_movie_details(movie_id)
+        # Try RapidAPI Movie DB first if it looks like an IMDb ID
+        if movie_id.startswith("tt"):
+            rapidapi_data = await rapidapi_movie_db.get_by_id(imdb_id=movie_id)
+            if rapidapi_data.get("Response") == "True":
+                return rapidapi_data
+        
+        # Otherwise try TMDB
+        tmdb_data = await tmdb_client.get_movie_details(int(movie_id))
         
         # Try to get additional data from other sources
         if tmdb_data.get("imdb_id"):
