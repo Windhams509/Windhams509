@@ -122,6 +122,24 @@ class ToggleRepository(BaseModel):
     enabled: bool
 
 
+# Device Code Authentication Models
+class DeviceCodeRequest(BaseModel):
+    service_name: str  # 'trakt', 'plex', 'simkl', etc.
+
+
+class DeviceCodeResponse(BaseModel):
+    device_code: str
+    user_code: str
+    verification_url: str
+    expires_in: int
+    interval: int  # Polling interval in seconds
+
+
+class DeviceCodePoll(BaseModel):
+    service_name: str
+    device_code: str
+
+
 class AddRepository(BaseModel):
     name: str
     url: str
