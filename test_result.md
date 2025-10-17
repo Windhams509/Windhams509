@@ -139,7 +139,7 @@ backend:
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "Created models for User, Watchlist, Watch History, Favorites, and PIN management"
+        comment: "Created models for User, Watchlist, Watch History, Favorites, PIN management, external services, and repositories"
 
   - task: "Backend API routes"
     implemented: true
@@ -148,6 +148,46 @@ backend:
     stuck_count: 0
     priority: "high"
     needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented all routes: auth, content discovery, watchlist, favorites, history, PIN protection, streaming sources. Server running successfully on port 8001"
+
+  - task: "User settings endpoints"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added endpoints for updating profile (name, email), changing password, and updating adult content PIN"
+
+  - task: "External services connection endpoints"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added endpoints to connect/disconnect external services: Trakt, TMDb, OMDb, IMDb, TVDb, Fanart, MDBList, Real-Debrid, AllDebrid, Premiumize, Torbox, Debrid-Link, Plex, Emby, Jellyfin, Simkl, Kitsu, AniList"
+
+  - task: "Repository system endpoints"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added Kodi-like repository system endpoints: add, list, toggle enable/disable, and delete repositories"
     status_history:
       - working: "NA"
         agent: "main"
