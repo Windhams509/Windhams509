@@ -26,7 +26,8 @@ from models import (
     DownloadRequest, Download, DownloadUpdate,
     Profile, CreateProfile, ParentalControls, ScreenTimeSettings, 
     ScreenTimeLog, ProfileActivity,
-    ContentApprovalRequest, ApprovalResponse, ParentNotification
+    ContentApprovalRequest, ApprovalResponse, ParentNotification,
+    ForgotPasswordRequest, ResetPasswordRequest, Enable2FA, Verify2FA, TwoFactorSettings
 )
 from auth import (
     hash_password, verify_password, create_access_token,
