@@ -33,10 +33,59 @@ const Home = () => {
       setTrending(trendingRes.data.results || []);
       setMovies(moviesRes.data.results || []);
       setTVShows(tvRes.data.results || []);
+
+      // Load production companies and franchises
+      loadProductionContent();
+      loadFranchises();
+      loadBoxSets();
     } catch (error) {
       console.error('Error loading content:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadProductionContent = async () => {
+    try {
+      // Search for production company content
+      const [millsshot, gamma, adultTime] = await Promise.all([
+        contentAPI.search('Millsshot Productions'),
+        contentAPI.search('Gamma Productions'),
+        contentAPI.search('Adult Time'),
+      ]);
+
+      setMillsshotContent(millsshot.data.results?.slice(0, 20) || []);
+      setGammaContent(gamma.data.results?.slice(0, 20) || []);
+      setAdultTimeContent(adultTime.data.results?.slice(0, 20) || []);
+    } catch (error) {
+      console.error('Error loading production content:', error);
+    }
+  };
+
+  const loadFranchises = async () => {
+    try {
+      // Search for popular franchises
+      const [fast, marvel, dc] = await Promise.all([
+        contentAPI.search('Fast Furious'),
+        contentAPI.search('Marvel Cinematic Universe'),
+        contentAPI.search('DC Comics'),
+      ]);
+
+      setFastFranchise(fast.data.results?.slice(0, 15) || []);
+      setMarvelContent(marvel.data.results?.slice(0, 20) || []);
+      setDCContent(dc.data.results?.slice(0, 20) || []);
+    } catch (error) {
+      console.error('Error loading franchises:', error);
+    }
+  };
+
+  const loadBoxSets = async () => {
+    try {
+      // Search for popular box sets and collections
+      const boxSetsSearch = await contentAPI.search('Collection Complete');
+      setBoxSets(boxSetsSearch.data.results?.slice(0, 20) || []);
+    } catch (error) {
+      console.error('Error loading box sets:', error);
     }
   };
 
