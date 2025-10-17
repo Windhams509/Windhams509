@@ -299,10 +299,10 @@ const MovieDetails = () => {
       </div>
 
       {/* Video Player Modal */}
-      {showPlayer && selectedSource && (
+      {showPlayer && streamSources.length > 0 && (
         <VideoPlayer
           movie={movie}
-          source={selectedSource}
+          sources={streamSources}
           onClose={() => setShowPlayer(false)}
         />
       )}
