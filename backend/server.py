@@ -295,7 +295,7 @@ async def update_pin(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Current PIN required"
             )
-        if user["adult_pin"] != pin_data.current_pin:
+        if not verify_password(pin_data.current_pin, user["adult_pin"]):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Current PIN is incorrect"
