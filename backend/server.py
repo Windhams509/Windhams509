@@ -1104,6 +1104,89 @@ async def get_genres(media_type: str = "movie"):
         raise HTTPException(status_code=500, detail="Failed to fetch genres")
 
 
+
+@api_router.get("/content/recommendations")
+async def get_recommendations(current_user: TokenData = Depends(get_current_user)):
+    """Get personalized recommendations based on watch history"""
+    try:
+        # Get user's watch history
+        history = await db.watch_history.find(
+            {"user_id": current_user.user_id}
+        ).sort("last_watched", -1).limit(20).to_list(20)
+        
+        if not history:
+            # If no history, return trending content
+            trending_ids = [
+                "tt0111161", "tt0068646", "tt0468569", "tt0110912", "tt1375666",
+                "tt0137523", "tt0109830", "tt0167260", "tt0120737", "tt0816692"
+            ]
+            recommendations = []
+            for imdb_id in trending_ids[:10]:
+                movie_data = await enrich_movie_data(imdb_id)
+                recommendations.append(movie_data)
+            return {"results": recommendations, "based_on": "trending"}
+        
+        # Extract genres and titles from watch history
+        watched_genres = set()
+        watched_titles = []
+        
+        for item in history:
+            watched_titles.append(item.get("title", ""))
+            # You could extract genres here if stored in history
+        
+        # Search for similar content based on watched titles
+        recommendations = []
+        seen_ids = set()
+        
+        for item in history[:5]:  # Use top 5 watched items
+            title = item.get("title", "")
+            if not title:
+                continue
+                
+            try:
+                # Search for similar content
+                search_results = await omdb_client.search(title)
+                if search_results.get("Response") == "True":
+                    results = search_results.get("Search", [])
+                    for result in results[:3]:  # Take top 3 similar
+                        imdb_id = result.get("imdbID")
+                        if imdb_id and imdb_id not in seen_ids:
+                            seen_ids.add(imdb_id)
+                            movie_data = await enrich_movie_data(imdb_id)
+                            recommendations.append(movie_data)
+                            
+                            if len(recommendations) >= 20:
+                                break
+            except Exception as e:
+                logger.error(f"Error getting recommendations for {title}: {e}")
+                continue
+            
+            if len(recommendations) >= 20:
+                break
+        
+        # If we don't have enough recommendations, add some popular ones
+        if len(recommendations) < 10:
+            popular_ids = [
+                "tt0111161", "tt0068646", "tt0468569", "tt0110912", "tt1375666",
+                "tt0137523", "tt0109830", "tt0167260", "tt0120737", "tt0816692"
+            ]
+            for imdb_id in popular_ids:
+                if imdb_id not in seen_ids and len(recommendations) < 20:
+                    movie_data = await enrich_movie_data(imdb_id)
+                    recommendations.append(movie_data)
+        
+        return {
+            "results": recommendations,
+            "based_on": "watch_history",
+            "history_count": len(history)
+        }
+        
+    except Exception as e:
+        logger.error(f"Error generating recommendations: {e}")
+        raise HTTPException(status_code=500, detail="Failed to generate recommendations")
+
+
+
 # ==================== STREAMING SOURCES ROUTES ====================
 
 @api_router.get("/sources/search")
