@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout android:id="@id/root_view" android:layout_width="fill_parent" android:layout_height="fill_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <ImageView android:id="@id/imgBackground" android:layout_width="fill_parent" android:layout_height="fill_parent" android:scaleType="centerCrop" android:alpha="0.1" />
+    <com.google.android.material.appbar.AppBarLayout android:id="@id/appbar" android:background="@color/transparent" android:fitsSystemWindows="true" android:layout_width="fill_parent" android:layout_height="wrap_content" android:touchscreenBlocksFocus="false" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent">
+        <com.google.android.material.appbar.CollapsingToolbarLayout android:id="@id/collapsingToolbarLayout" android:fitsSystemWindows="true" android:layout_width="fill_parent" android:layout_height="wrap_content" style="@style/Widget.PopularMovies.CollapsingToolbarLayout.Details">
+            <include android:id="@id/detailHeader" layout="@layout/view_detail_header" />
+            <androidx.appcompat.widget.Toolbar android:id="@id/toolbar" android:layout_width="fill_parent" android:layout_height="?actionBarSize" android:touchscreenBlocksFocus="false" app:layout_collapseMode="pin" app:layout_scrollFlags="enterAlways|scroll" app:popupTheme="@style/ThemeOverlay.AppCompat" />
+        </com.google.android.material.appbar.CollapsingToolbarLayout>
+        <com.google.android.material.tabs.TabLayout android:layout_gravity="bottom" android:id="@id/tablayout" android:layout_width="fill_parent" android:layout_height="wrap_content" android:minHeight="?actionBarSize" app:tabGravity="fill" />
+    </com.google.android.material.appbar.AppBarLayout>
+    <androidx.viewpager.widget.ViewPager android:id="@id/viewpage" android:focusable="true" android:layout_width="fill_parent" android:layout_height="wrap_content" app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

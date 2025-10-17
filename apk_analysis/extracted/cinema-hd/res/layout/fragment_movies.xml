@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.movie.ui.widget.MultiSwipeRefreshLayout android:id="@id/multi_swipe_refresh_layout" android:layout_width="fill_parent" android:layout_height="wrap_content"
+  xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <com.movie.ui.widget.BetterViewAnimator android:id="@id/movies_animator" android:layout_width="fill_parent" android:layout_height="wrap_content" android:inAnimation="@android:anim/fade_in" android:outAnimation="@android:anim/fade_out">
+        <androidx.recyclerview.widget.RecyclerView android:id="@id/movies_recycler_view" android:padding="0.0dip" android:focusable="true" android:layout_width="fill_parent" android:layout_height="fill_parent" style="@style/CollectionView" />
+        <include layout="@layout/partial_view_loading" />
+        <com.movie.ui.widget.AnimatorStateView android:id="@id/view_error" android:layout_width="fill_parent" android:layout_height="fill_parent" app:messageImage="@drawable/egg_error" app:messageText="@string/view_error_message" />
+        <com.movie.ui.widget.AnimatorStateView android:id="@id/view_empty" android:layout_width="fill_parent" android:layout_height="fill_parent" app:messageImage="@drawable/egg_empty" app:messageText="@string/favored_empty_message" />
+    </com.movie.ui.widget.BetterViewAnimator>
+</com.movie.ui.widget.MultiSwipeRefreshLayout>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:orientation="vertical" android:layout_width="fill_parent" android:layout_height="fill_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android" xmlns:ads="http://schemas.android.com/apk/res-auto">
+    <LinearLayout android:gravity="center" android:orientation="vertical" android:id="@id/webViewActivityRoot" android:layout_width="fill_parent" android:layout_height="fill_parent">
+        <WebView android:id="@id/webView" android:visibility="gone" android:layout_width="fill_parent" android:layout_height="fill_parent" android:layout_centerInParent="true" />
+        <TextView android:textSize="46.0sp" android:textColor="@color/material_white" android:gravity="center" android:id="@id/tvPleaseWait" android:visibility="visible" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_margin="6.0dip" android:text="@string/plaese_wait" android:layout_centerInParent="true" />
+        <ProgressBar android:id="@id/pbPleaseWait" android:visibility="visible" android:layout_width="50.0dip" android:layout_height="50.0dip" android:layout_marginTop="12.0dip" android:indeterminate="true" android:layout_below="@id/tvPleaseWait" android:layout_centerHorizontal="true" />
+    </LinearLayout>
+</LinearLayout>

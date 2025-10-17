@@ -1,0 +1,31 @@
+.class public Lcom/google/android/exoplayer2/drm/DecryptionException;
+.super Ljava/lang/Exception;
+.source "SourceFile"
+
+
+# instance fields
+.field public final b:I
+
+
+# direct methods
+.method public constructor <init>(ILjava/lang/String;)V
+    .locals 0
+    .annotation system Ldalvik/annotation/MethodParameters;
+        accessFlags = {
+            0x0,
+            0x0
+        }
+        names = {
+            "errorCode",
+            "message"
+        }
+    .end annotation
+
+    .line 1
+    invoke-direct {p0, p2}, Ljava/lang/Exception;-><init>(Ljava/lang/String;)V
+
+    .line 2
+    iput p1, p0, Lcom/google/android/exoplayer2/drm/DecryptionException;->b:I
+
+    return-void
+.end method

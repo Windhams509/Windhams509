@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.drawerlayout.widget.DrawerLayout android:id="@id/drawer_layout" android:layout_width="fill_parent" android:layout_height="fill_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <com.google.android.material.navigation.NavigationView android:layout_gravity="start" android:id="@id/nav_view" android:layout_width="wrap_content" android:layout_height="fill_parent" app:headerLayout="@layout/nav_header_main" app:itemBackground="@drawable/drawer_item" app:itemIconTint="@color/drawer_item_color" app:itemTextColor="@color/drawer_item_color" app:menu="@menu/activity_main_drawer" />
+    <androidx.constraintlayout.widget.ConstraintLayout android:layout_width="fill_parent" android:layout_height="fill_parent">
+        <com.google.android.material.appbar.AppBarLayout android:theme="@style/Theme.PopularMovies.AppBarOverlay" android:id="@id/appbar" android:layout_width="fill_parent" android:layout_height="wrap_content" android:touchscreenBlocksFocus="false" app:layout_constraintTop_toTopOf="parent">
+            <androidx.appcompat.widget.Toolbar android:id="@id/toolbar" android:background="?colorPrimary" android:layout_width="fill_parent" android:layout_height="?actionBarSize" android:layout_weight="1.0" android:touchscreenBlocksFocus="false" app:layout_scrollFlags="enterAlways|scroll" app:popupTheme="@style/Theme.PopularMovies.PopupOverlay" app:title="@string/app_name">
+                <Spinner android:id="@id/spinner" android:layout_width="wrap_content" android:layout_height="fill_parent" />
+            </androidx.appcompat.widget.Toolbar>
+        </com.google.android.material.appbar.AppBarLayout>
+        <FrameLayout android:scrollbarStyle="outsideOverlay" android:id="@id/container" android:clipToPadding="false" android:layout_width="fill_parent" android:layout_height="0.0dip" app:layout_behavior="@string/appbar_scrolling_view_behavior" app:layout_constraintBottom_toTopOf="@id/adView" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toBottomOf="@id/appbar" />
+        <FrameLayout android:id="@id/adView" android:layout_width="fill_parent" android:layout_height="wrap_content" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.drawerlayout.widget.DrawerLayout>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:gravity="center" android:orientation="vertical" android:id="@id/message_view" android:padding="48.0dip" android:clickable="true" android:layout_width="fill_parent" android:layout_height="fill_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <ImageView android:id="@id/message_view_image" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="32.0dip" android:tint="@color/body_text_3" android:contentDescription="@null" />
+    <TextView android:textSize="@dimen/text_size_large" android:textStyle="bold" android:textColor="@color/body_text_3" android:gravity="center" android:id="@id/message_view_text" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+</LinearLayout>

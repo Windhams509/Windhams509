@@ -1,0 +1,38 @@
+.class public interface abstract Lcom/franmontiel/persistentcookiejar/persistence/CookiePersistor;
+.super Ljava/lang/Object;
+.source "SourceFile"
+
+
+# virtual methods
+.method public abstract a(Ljava/util/Collection;)V
+    .annotation system Ldalvik/annotation/Signature;
+        value = {
+            "(",
+            "Ljava/util/Collection<",
+            "Lokhttp3/Cookie;",
+            ">;)V"
+        }
+    .end annotation
+.end method
+
+.method public abstract b()Ljava/util/List;
+    .annotation system Ldalvik/annotation/Signature;
+        value = {
+            "()",
+            "Ljava/util/List<",
+            "Lokhttp3/Cookie;",
+            ">;"
+        }
+    .end annotation
+.end method
+
+.method public abstract removeAll(Ljava/util/Collection;)V
+    .annotation system Ldalvik/annotation/Signature;
+        value = {
+            "(",
+            "Ljava/util/Collection<",
+            "Lokhttp3/Cookie;",
+            ">;)V"
+        }
+    .end annotation
+.end method

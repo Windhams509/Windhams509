@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout android:orientation="horizontal" android:paddingBottom="8.0dip" android:layout_width="fill_parent" android:layout_height="wrap_content"
+  xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <TextView android:textSize="24.0sp" android:ellipsize="marquee" android:id="@id/txtSelectFileName" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="TextView" android:singleLine="true" android:layout_weight="1.0" android:layout_marginStart="8.0dip" app:layout_constraintBottom_toBottomOf="@id/cbSelectFile" app:layout_constraintStart_toEndOf="@id/cbSelectFile" app:layout_constraintTop_toTopOf="@id/cbSelectFile" />
+    <CheckBox android:id="@id/cbSelectFile" android:focusable="false" android:longClickable="false" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8.0dip" android:layout_weight="1.0" android:layout_marginStart="16.0dip" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" />
+</androidx.constraintlayout.widget.ConstraintLayout>

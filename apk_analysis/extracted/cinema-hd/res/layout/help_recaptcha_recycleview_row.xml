@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:orientation="horizontal" android:background="@drawable/button_border_gray" android:padding="2.0dip" android:focusable="true" android:layout_width="fill_parent" android:layout_height="30.0dip" android:layout_margin="4.0dip"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <TextView android:textSize="20.0dip" android:layout_gravity="left" android:id="@id/help_provider_text" android:layout_width="wrap_content" android:layout_height="fill_parent" android:layout_marginLeft="10.0dip" android:text="provider" android:layout_weight="0.75" android:textAlignment="center" />
+    <Button android:textSize="20.0dip" android:layout_gravity="right" android:id="@id/btn_help_verify" android:background="@color/gray_background" android:layout_width="wrap_content" android:layout_height="fill_parent" android:layout_marginLeft="20.0dip" android:text="@string/verify" android:layout_weight="0.25" android:textAlignment="center" />
+</LinearLayout>

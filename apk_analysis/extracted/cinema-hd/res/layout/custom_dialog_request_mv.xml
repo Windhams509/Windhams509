@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:gravity="center_vertical" android:orientation="vertical" android:background="@color/theme_primary_dark" android:layout_width="fill_parent" android:layout_height="wrap_content"
+  xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <ImageView android:id="@id/update_img_dialog" android:layout_width="fill_parent" android:layout_height="wrap_content" android:adjustViewBounds="true" android:layout_weight="8.0" app:srcCompat="@drawable/placeholder_movie_details_image" />
+    <TextView android:textSize="18.0sp" android:textColor="@color/body_text_white" android:gravity="center_horizontal" android:id="@id/update_text_dialog" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_marginLeft="4.0dip" android:layout_marginTop="10.0dip" android:layout_marginRight="4.0dip" android:layout_marginBottom="10.0dip" android:text="Sorry, this movie is not available at the moment. Please click the request button for our updated film." android:layout_below="@id/bg" android:layout_centerHorizontal="true" />
+    <LinearLayout android:orientation="vertical" android:layout_width="fill_parent" android:layout_height="fill_parent" android:layout_weight="1.0">
+        <Button android:textColor="@color/common_google_signin_btn_text_dark_pressed" android:id="@id/request_mv" android:background="@color/material_amber900" android:layout_width="fill_parent" android:layout_height="fill_parent" android:text="Request Now" android:textAlignment="center" style="@android:style/Widget.Holo.Button" />
+    </LinearLayout>
+</LinearLayout>

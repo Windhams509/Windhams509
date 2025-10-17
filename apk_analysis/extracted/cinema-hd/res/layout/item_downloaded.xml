@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:orientation="horizontal" android:descendantFocusability="blocksDescendants" android:layout_width="fill_parent" android:layout_height="wrap_content" xmlns:app="http://schemas.android.com/apk/res-auto"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <ImageButton android:id="@id/delete" android:background="@color/transparent" android:layout_width="wrap_content" android:layout_height="fill_parent" app:srcCompat="@drawable/ic_dialog_close_dark" />
+    <TextView android:textAppearance="?android:textAppearanceListItemSmall" android:gravity="center_vertical" android:id="@id/text1" android:paddingLeft="@dimen/ld_side_margin" android:layout_width="372.0dip" android:layout_height="wrap_content" android:minHeight="?android:listPreferredItemHeightSmall" android:text="Server1" android:layout_weight="9.0"
+      xmlns:android="http://schemas.android.com/apk/res/android" />
+    <ProgressBar android:id="@id/downloading" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_weight="1.0" style="?android:progressBarStyle" />
+</LinearLayout>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout android:layout_width="fill_parent" android:layout_height="wrap_content"
+  xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <LinearLayout android:gravity="center" android:orientation="vertical" android:id="@id/root_view" android:layout_width="fill_parent" android:layout_height="wrap_content">
+        <ProgressBar android:id="@id/loading" android:layout_width="wrap_content" android:layout_height="wrap_content" app:layout_anchor="@id/viewpage" />
+        <androidx.constraintlayout.widget.ConstraintLayout android:layout_width="fill_parent" android:layout_height="fill_parent">
+            <ImageButton android:id="@id/ImgBtnrevertIndex" android:background="@drawable/episodes_reverse_highlight" android:layout_width="wrap_content" android:layout_height="0.0dip" android:layout_marginLeft="3.0dip" android:layout_marginStart="3.0dip" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" app:srcCompat="@drawable/exo_controls_repeat_all" />
+            <com.movie.ui.widget.SlidingTabLayout android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar" android:gravity="center" android:id="@id/tablayout" android:background="?colorPrimary" android:layout_width="0.0dip" android:layout_height="wrap_content" android:minHeight="?actionBarSize" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toEndOf="@id/ImgBtnrevertIndex" app:layout_constraintTop_toTopOf="parent" app:tabGravity="fill" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+        <androidx.viewpager.widget.ViewPager android:id="@id/viewpage" android:layout_width="fill_parent" android:layout_height="wrap_content" />
+    </LinearLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

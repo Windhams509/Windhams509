@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:layout_gravity="center" android:orientation="vertical" android:background="#ffbfd4e7" android:layout_width="fill_parent" android:layout_height="wrap_content"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <LinearLayout android:orientation="horizontal" android:id="@id/LinearLayout_dialog_error_ok" android:layout_width="fill_parent" android:layout_height="wrap_content">
+        <ImageView android:layout_gravity="left" android:id="@id/button5" android:background="@drawable/warning_36x36" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_margin="3.0dip" />
+        <TextView android:textSize="20.0dip" android:textColor="#ff000000" android:gravity="center|left" android:id="@id/textView3" android:layout_width="fill_parent" android:layout_height="fill_parent" android:layout_marginLeft="10.0dip" android:text="ERROR" android:layout_below="@id/button5" />
+    </LinearLayout>
+    <LinearLayout android:orientation="vertical" android:background="#fff1f1f1" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_margin="5.0dip" android:layout_below="@id/LinearLayout_dialog_error_ok">
+        <TextView android:textSize="20.0dip" android:textColor="#ff000000" android:gravity="center" android:id="@id/textView5" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_margin="5.0dip" android:text="@string/favored_error_message" android:layout_centerVertical="true" />
+        <Button android:textColor="#ff000000" android:layout_gravity="right" android:id="@id/btn_layout_dialog_error_video" android:layout_width="wrap_content" android:layout_height="39.0dip" android:layout_marginRight="10.0dip" android:text="OK" android:textAlignment="center" />
+    </LinearLayout>
+</RelativeLayout>

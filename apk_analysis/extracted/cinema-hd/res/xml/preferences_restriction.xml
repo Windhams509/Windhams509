@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <Preference android:title="Set password" android:key="pref_restrict_password" android:summary="" />
+    <SwitchPreferenceCompat android:title="Seach restrict" android:key="pref_restrict_search" android:defaultValue="true" />
+    <Preference android:title="Choose categories to restrict" android:key="pref_category_restriction" android:summary="" />
+</PreferenceScreen>

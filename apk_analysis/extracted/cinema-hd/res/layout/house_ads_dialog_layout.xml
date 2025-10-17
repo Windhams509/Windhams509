@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView android:orientation="vertical" android:id="@id/houseAds_card_view" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_margin="10.0dip" app:cardPreventCornerOverlap="false"
+  xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <RelativeLayout android:gravity="center" android:layout_width="fill_parent" android:layout_height="wrap_content">
+        <ImageView android:id="@id/houseAds_header_image" android:visibility="gone" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_marginBottom="5.0dip" android:scaleType="centerCrop" android:adjustViewBounds="true" android:contentDescription="@string/header_image" />
+        <LinearLayout android:orientation="horizontal" android:id="@id/houseAds_ad_asset_holder" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_margin="10.0dip" android:layout_below="@id/houseAds_header_image">
+            <ImageView android:id="@id/houseAds_app_icon" android:layout_width="70.0dip" android:layout_height="70.0dip" android:layout_margin="10.0dip" />
+            <LinearLayout android:orientation="vertical" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_margin="10.0dip">
+                <TextView android:textSize="17.0sp" android:textStyle="bold" android:id="@id/houseAds_title" android:layout_width="fill_parent" android:layout_height="wrap_content" />
+                <TextView android:textSize="14.0sp" android:id="@id/houseAds_description" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="10.0dip" />
+                <LinearLayout android:orientation="horizontal" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_marginTop="10.0dip">
+                    <androidx.appcompat.widget.AppCompatRatingBar android:id="@id/houseAds_rating" android:layout_width="wrap_content" android:layout_height="wrap_content" android:numStars="5" android:stepSize="0.1" android:isIndicator="true" style="@style/Widget.AppCompat.RatingBar.Small" />
+                    <TextView android:id="@id/houseAds_price" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginLeft="10.0dip" android:layout_marginStart="10.0dip" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+        <Button android:textSize="12.0sp" android:textColor="#ffffffff" android:gravity="center" android:id="@id/houseAds_cta" android:background="@drawable/button_bg" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_marginLeft="20.0dip" android:layout_marginTop="10.0dip" android:layout_marginRight="20.0dip" android:layout_marginBottom="10.0dip" android:layout_below="@id/houseAds_ad_asset_holder" />
+    </RelativeLayout>
+</androidx.cardview.widget.CardView>
