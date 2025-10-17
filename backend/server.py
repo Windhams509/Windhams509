@@ -926,6 +926,12 @@ async def get_user_preferences(current_user: TokenData = Depends(get_current_use
             "language": user.get("preferred_language", "en"),
             "hide_genres": user.get("hide_genres", []),
             "maturity_filter": user.get("maturity_filter", "all")
+        },
+        "browser": {
+            "preferred_browser": user.get("preferred_browser", "chrome"),
+            "enable_tab_grouping": user.get("enable_tab_grouping", True),
+            "open_links_in_new_tab": user.get("open_links_in_new_tab", True),
+            "browser_auto_organize": user.get("browser_auto_organize", False)
         }
     }
 
