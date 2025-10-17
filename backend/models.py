@@ -289,6 +289,87 @@ class DownloadUpdate(BaseModel):
 
 
 
+# Family Account Models
+class Profile(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str  # Parent account
+    name: str
+    avatar: Optional[str] = None
+    is_child: bool = False
+    age: Optional[int] = None
+    pin: Optional[str] = None  # PIN to access this profile
+    
+    # Parental Controls
+    maturity_rating: str = "all"  # all, g, pg, pg13, r, nc17
+    allowed_genres: List[str] = Field(default_factory=list)  # Empty = all allowed
+    blocked_content: List[str] = Field(default_factory=list)  # Content IDs to block
+    
+    # Screen Time Controls
+    screen_time_enabled: bool = False
+    daily_limit_minutes: int = 120  # 2 hours default
+    time_used_today: int = 0  # minutes
+    last_reset_date: str = Field(default_factory=lambda: datetime.utcnow().date().isoformat())
+    
+    # Time Restrictions
+    allowed_start_time: Optional[str] = None  # "08:00"
+    allowed_end_time: Optional[str] = None  # "20:00"
+    
+    # Activity Monitoring
+    watch_history_visible_to_parent: bool = True
+    search_history_visible_to_parent: bool = True
+    
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    is_active: bool = True
+
+
+class CreateProfile(BaseModel):
+    name: str
+    is_child: bool = False
+    age: Optional[int] = None
+    pin: Optional[str] = None
+    maturity_rating: str = "all"
+
+
+class UpdateProfile(BaseModel):
+    name: Optional[str] = None
+    avatar: Optional[str] = None
+    pin: Optional[str] = None
+
+
+class ParentalControls(BaseModel):
+    profile_id: str
+    maturity_rating: Optional[str] = None
+    allowed_genres: Optional[List[str]] = None
+    blocked_content: Optional[List[str]] = None
+
+
+class ScreenTimeSettings(BaseModel):
+    profile_id: str
+    screen_time_enabled: Optional[bool] = None
+    daily_limit_minutes: Optional[int] = None
+    allowed_start_time: Optional[str] = None
+    allowed_end_time: Optional[str] = None
+
+
+class ScreenTimeLog(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    profile_id: str
+    session_start: datetime
+    session_end: Optional[datetime] = None
+    minutes_used: int = 0
+    date: str = Field(default_factory=lambda: datetime.utcnow().date().isoformat())
+
+
+class ProfileActivity(BaseModel):
+    profile_id: str
+    content_id: str
+    content_title: str
+    activity_type: str  # watched, searched, added_to_watchlist
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+
+
+
+
 # Content Request/Response Models
 class ContentSearchRequest(BaseModel):
     query: str
