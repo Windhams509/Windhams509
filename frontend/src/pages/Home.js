@@ -41,6 +41,7 @@ const Home = () => {
       loadProductionContent();
       loadFranchises();
       loadBoxSets();
+      loadDocumentaries();
     } catch (error) {
       console.error('Error loading content:', error);
     } finally {
