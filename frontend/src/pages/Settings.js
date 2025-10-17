@@ -37,6 +37,16 @@ const Settings = () => {
     description: ''
   });
 
+  // Device Code Authentication State
+  const [deviceCodeModal, setDeviceCodeModal] = useState({
+    show: false,
+    service: '',
+    userCode: '',
+    verificationUrl: '',
+    deviceCode: '',
+    polling: false
+  });
+
   useEffect(() => {
     if (user) {
       setProfileData({
