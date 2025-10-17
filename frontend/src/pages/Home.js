@@ -150,7 +150,8 @@ const Home = () => {
     return (
       <Link
         to={`/movie/${itemId}`}
-        className="group relative block flex-shrink-0 w-48 transform transition-transform duration-200 hover:scale-105"
+        className="group relative block flex-shrink-0 w-48 transform transition-all duration-200 hover:scale-105 focus:scale-110 focus:outline-none focus:ring-4 focus:ring-red-600 rounded-lg"
+        tabIndex={0}
       >
         <div className="relative overflow-hidden rounded-lg">
           {posterUrl ? (
@@ -164,8 +165,8 @@ const Home = () => {
               <span className="text-gray-500">No Image</span>
             </div>
           )}
-          <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-60 transition-opacity duration-200" />
-          <div className="absolute bottom-0 left-0 right-0 p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-200">
+          <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-60 group-focus:opacity-60 transition-opacity duration-200" />
+          <div className="absolute bottom-0 left-0 right-0 p-4 transform translate-y-full group-hover:translate-y-0 group-focus:translate-y-0 transition-transform duration-200">
             <p className="text-white font-semibold text-sm line-clamp-2">{title}</p>
             <p className="text-gray-300 text-xs mt-1">
               {rating !== 'N/A' ? `⭐ ${rating}` : item.year || 'N/A'}
