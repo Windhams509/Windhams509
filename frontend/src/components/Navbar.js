@@ -21,12 +21,21 @@ const Navbar = () => {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-b from-black to-transparent">
       <div className="max-w-7xl mx-auto px-8 py-4">
         <div className="flex items-center justify-between">
-          {/* Logo */}
-          <Link to="/" className="flex flex-col">
-            <span className="text-3xl font-bold text-white">
-              The <span className="text-red-600">Watchen</span> Place
-            </span>
-            <span className="text-xs text-gray-400 italic">by The Gettin Place</span>
+          {/* Logo with Icon */}
+          <Link to="/" className="flex items-center space-x-3">
+            <div className="w-12 h-12 rounded-lg overflow-hidden border-2 border-red-600">
+              <img 
+                src="/logo-icon.jpg" 
+                alt="The Watchen Place" 
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-3xl font-bold text-white">
+                The <span className="text-red-600">Watchen</span> Place
+              </span>
+              <span className="text-xs text-gray-400 italic">by The Gettin Place</span>
+            </div>
           </Link>
 
           {/* Search */}
