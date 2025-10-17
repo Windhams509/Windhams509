@@ -43,6 +43,16 @@ const Login = () => {
       <div className="max-w-md w-full mx-4">
         <div className="bg-gray-800 border border-gray-700 rounded-2xl shadow-2xl p-8">
           <div className="text-center mb-8">
+            {/* Logo Icon */}
+            <div className="flex justify-center mb-4">
+              <div className="w-20 h-20 rounded-lg overflow-hidden border-2 border-red-600">
+                <img 
+                  src="/logo-icon.jpg" 
+                  alt="The Watchen Place" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </div>
             <h1 className="text-4xl font-bold text-white mb-1">
               The <span className="text-red-600">Watchen</span> Place
             </h1>
