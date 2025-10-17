@@ -79,14 +79,29 @@ const Home = () => {
 
   const loadProductionContent = async () => {
     try {
-      // Search for production company content
-      const [breeMills, gamma, adultTime] = await Promise.all([
+      // Search for Bree Mills and her production companies
+      const [breeMills, gamma, adultTime, pureTaboo, naughtyAmerica] = await Promise.all([
         contentAPI.search('Bree Mills'),
-        contentAPI.search('Gamma Productions'),
+        contentAPI.search('Gamma Entertainment'),
         contentAPI.search('Adult Time'),
+        contentAPI.search('Pure Taboo'),
+        contentAPI.search('Naughty America'),
       ]);
 
-      setBreeMillsContent(breeMills.data.results?.slice(0, 20) || []);
+      // Combine all Bree Mills related content
+      const allBreeMillsContent = [
+        ...(breeMills.data.results || []),
+        ...(gamma.data.results || []),
+        ...(adultTime.data.results || []),
+        ...(pureTaboo.data.results || [])
+      ];
+      
+      // Remove duplicates based on content_id
+      const uniqueBreeMillsContent = Array.from(
+        new Map(allBreeMillsContent.map(item => [item.imdbID || item.id, item])).values()
+      ).slice(0, 30);
+
+      setBreeMillsContent(uniqueBreeMillsContent);
       setGammaContent(gamma.data.results?.slice(0, 20) || []);
       setAdultTimeContent(adultTime.data.results?.slice(0, 20) || []);
     } catch (error) {
