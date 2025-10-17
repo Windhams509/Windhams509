@@ -39,6 +39,9 @@ const Home = () => {
       setMovies(moviesRes.data.results || []);
       setTVShows(tvRes.data.results || []);
 
+      // Load personalized content
+      loadPersonalizedContent();
+
       // Load production companies and franchises
       loadProductionContent();
       loadFranchises();
@@ -48,6 +51,25 @@ const Home = () => {
       console.error('Error loading content:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadPersonalizedContent = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        // Load continue watching and recommendations if user is logged in
+        const [continueRes, recommendationsRes] = await Promise.all([
+          contentAPI.getContinueWatching(),
+          contentAPI.getRecommendations(),
+        ]);
+
+        setContinueWatching(continueRes.data.results || []);
+        setRecommendations(recommendationsRes.data.results || []);
+      }
+    } catch (error) {
+      console.error('Error loading personalized content:', error);
+      // Don't show error to user, just skip personalized content
     }
   };
 
