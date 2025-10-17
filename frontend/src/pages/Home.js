@@ -16,6 +16,9 @@ const Home = () => {
   const [marvelContent, setMarvelContent] = useState([]);
   const [dcContent, setDCContent] = useState([]);
   const [boxSets, setBoxSets] = useState([]);
+  const [documentaries, setDocumentaries] = useState([]);
+  const [musicianDocs, setMusicianDocs] = useState([]);
+  const [iAmSeries, setIAmSeries] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
