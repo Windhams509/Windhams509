@@ -24,6 +24,9 @@ const Home = () => {
   const [iAmSeries, setIAmSeries] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Enable keyboard/remote navigation
+  useKeyboardNavigation(true);
+
   useEffect(() => {
     loadContent();
   }, []);
