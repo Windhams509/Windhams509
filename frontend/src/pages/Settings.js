@@ -47,6 +47,48 @@ const Settings = () => {
     polling: false
   });
 
+  // Subtitle Settings State
+  const [subtitleSettings, setSubtitleSettings] = useState({
+    language: 'en',
+    size: 'medium',
+    color: '#FFFFFF',
+    background: 'rgba(0,0,0,0.7)',
+    delay: 0,
+    auto_load: true
+  });
+  const [subtitleServices, setSubtitleServices] = useState({});
+
+  // Playback Settings State
+  const [playbackSettings, setPlaybackSettings] = useState({
+    quality: 'auto',
+    autoplay_next: true,
+    skip_intro: 85,
+    hardware_acceleration: true,
+    buffer_size: 'medium'
+  });
+
+  // Appearance Settings State
+  const [appearanceSettings, setAppearanceSettings] = useState({
+    theme: 'dark',
+    accent_color: '#DC2626',
+    poster_size: 'medium',
+    view_mode: 'grid'
+  });
+
+  // Privacy Settings State
+  const [privacySettings, setPrivacySettings] = useState({
+    track_history: true,
+    show_continue_watching: true,
+    auto_logout_minutes: 0
+  });
+
+  // Content Preferences State
+  const [contentPreferences, setContentPreferences] = useState({
+    language: 'en',
+    hide_genres: [],
+    maturity_filter: 'all'
+  });
+
   useEffect(() => {
     if (user) {
       setProfileData({
