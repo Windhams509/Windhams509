@@ -12,7 +12,7 @@ const Home = () => {
   const [tvShows, setTVShows] = useState([]);
   const [continueWatching, setContinueWatching] = useState([]);
   const [recommendations, setRecommendations] = useState([]);
-  const [millsshotContent, setMillsshotContent] = useState([]);
+  const [breeMillsContent, setBreeMillsContent] = useState([]);
   const [gammaContent, setGammaContent] = useState([]);
   const [adultTimeContent, setAdultTimeContent] = useState([]);
   const [fastFranchise, setFastFranchise] = useState([]);
