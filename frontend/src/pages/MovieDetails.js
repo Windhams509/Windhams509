@@ -29,9 +29,32 @@ const MovieDetails = () => {
     }
   };
 
-  const handleWatch = (source) => {
-    setSelectedSource(source);
-    setShowPlayer(true);
+  const handleWatch = async (source) => {
+    setLoadingSources(true);
+    try {
+      // Get direct streaming links from backend
+      const response = await sourcesAPI.getDirect(
+        movie.imdbID || id,
+        movie.Title || movie.title,
+        movie.Year
+      );
+      
+      if (response.data.success) {
+        setStreamSources(response.data.sources);
+        setShowPlayer(true);
+      } else {
+        // Fallback to embed if direct fails
+        setStreamSources([source]);
+        setShowPlayer(true);
+      }
+    } catch (error) {
+      console.error('Error loading streams:', error);
+      // Fallback to original method
+      setStreamSources([source]);
+      setShowPlayer(true);
+    } finally {
+      setLoadingSources(false);
+    }
   };
 
   const handleAddToWatchlist = async () => {
