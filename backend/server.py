@@ -2460,6 +2460,122 @@ async def get_continue_watching(current_user: TokenData = Depends(get_current_us
 
 
 
+@api_router.get("/content/seasonal")
+async def get_seasonal_content():
+    """Get seasonal and holiday-themed content (auto-curated)"""
+    try:
+        from datetime import datetime
+        import calendar
+        
+        now = datetime.now()
+        month = now.month
+        day = now.day
+        
+        collections = {}
+        
+        # Determine current season
+        if month in [12, 1, 2]:
+            season = "winter"
+            season_query = "winter christmas holiday"
+        elif month in [3, 4, 5]:
+            season = "spring"
+            season_query = "spring fresh romance"
+        elif month in [6, 7, 8]:
+            season = "summer"
+            season_query = "summer action blockbuster"
+        else:  # 9, 10, 11
+            season = "fall"
+            season_query = "fall autumn horror"
+        
+        # Holiday-specific collections (with date ranges)
+        holidays = []
+        
+        # Christmas Season (December 1 - 26)
+        if month == 12 and day <= 26:
+            holidays.append({
+                "name": "Christmas Movies",
+                "query": "christmas holiday",
+                "emoji": "🎄"
+            })
+        
+        # Halloween (October)
+        if month == 10:
+            holidays.append({
+                "name": "Halloween Horror",
+                "query": "halloween horror scary",
+                "emoji": "🎃"
+            })
+        
+        # Thanksgiving (November)
+        if month == 11 and day <= 30:
+            holidays.append({
+                "name": "Thanksgiving Family",
+                "query": "thanksgiving family",
+                "emoji": "🦃"
+            })
+        
+        # Valentine's Day (February 1-14)
+        if month == 2 and day <= 14:
+            holidays.append({
+                "name": "Valentine's Romance",
+                "query": "romance love valentine",
+                "emoji": "💝"
+            })
+        
+        # 4th of July (June 15 - July 10)
+        if (month == 6 and day >= 15) or (month == 7 and day <= 10):
+            holidays.append({
+                "name": "Independence Day Action",
+                "query": "patriotic america action",
+                "emoji": "🎆"
+            })
+        
+        # New Year (December 26 - January 10)
+        if (month == 12 and day >= 26) or (month == 1 and day <= 10):
+            holidays.append({
+                "name": "New Year Celebrations",
+                "query": "new year party celebration",
+                "emoji": "🎊"
+            })
+        
+        # Easter (March-April - approximate)
+        if month in [3, 4]:
+            holidays.append({
+                "name": "Easter Family Films",
+                "query": "easter family spring",
+                "emoji": "🐰"
+            })
+        
+        # Fetch seasonal content
+        try:
+            seasonal_results = await omdb_client.search(season_query)
+            if seasonal_results.get("Response") == "True":
+                collections[f"{season.title()} Collection"] = seasonal_results.get("Search", [])[:20]
+        except:
+            pass
+        
+        # Fetch holiday collections
+        for holiday in holidays:
+            try:
+                holiday_results = await omdb_client.search(holiday["query"])
+                if holiday_results.get("Response") == "True":
+                    collections[f"{holiday['emoji']} {holiday['name']}"] = holiday_results.get("Search", [])[:20]
+            except:
+                pass
+        
+        return {
+            "season": season,
+            "current_date": now.strftime("%B %d, %Y"),
+            "collections": collections
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting seasonal content: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get seasonal content")
+
+
+
+
 
 # ==================== STREAMING SOURCES ROUTES ====================
 
