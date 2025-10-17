@@ -188,6 +188,15 @@ const MovieDetails = () => {
               {/* Action Buttons */}
               <div className="flex flex-wrap gap-4">
                 <button
+                  onClick={() => handleWatch(streamingSources[0])}
+                  disabled={loadingSources}
+                  className="flex items-center space-x-2 px-8 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition disabled:opacity-50"
+                >
+                  <Play size={20} fill="currentColor" />
+                  <span>{loadingSources ? 'Loading Streams...' : 'Watch Now'}</span>
+                </button>
+
+                <button
                   onClick={handleAddToWatchlist}
                   className="flex items-center space-x-2 px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition"
                 >
