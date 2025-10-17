@@ -266,9 +266,64 @@ class FilePursuitClient:
                 return {"files_found": []}
 
 
+class RapidAPIMovieDB:
+    """RapidAPI Movie Database Alternative API Client"""
+    BASE_URL = "https://movie-database-alternative.p.rapidapi.com"
+    
+    def __init__(self):
+        self.api_key = os.getenv('RAPIDAPI_MOVIE_DB_KEY')
+        self.headers = {
+            "X-RapidAPI-Key": self.api_key,
+            "X-RapidAPI-Host": "movie-database-alternative.p.rapidapi.com"
+        }
+    
+    async def search(self, query: str, page: int = 1, type: str = None) -> Dict[str, Any]:
+        """Search for movies/TV shows"""
+        params = {"s": query, "page": page, "r": "json"}
+        if type:
+            params["type"] = type
+        
+        async with httpx.AsyncClient() as client:
+            try:
+                response = await client.get(
+                    f"{self.BASE_URL}/",
+                    params=params,
+                    headers=self.headers,
+                    timeout=10.0
+                )
+                return response.json()
+            except Exception as e:
+                logger.error(f"RapidAPI Movie DB error: {e}")
+                return {"Response": "False", "Error": str(e)}
+    
+    async def get_by_id(self, imdb_id: str = None, title: str = None) -> Dict[str, Any]:
+        """Get movie/TV details by IMDb ID or title"""
+        params = {"r": "json"}
+        if imdb_id:
+            params["i"] = imdb_id
+        elif title:
+            params["t"] = title
+        else:
+            return {"Response": "False", "Error": "IMDb ID or title required"}
+        
+        async with httpx.AsyncClient() as client:
+            try:
+                response = await client.get(
+                    f"{self.BASE_URL}/",
+                    params=params,
+                    headers=self.headers,
+                    timeout=10.0
+                )
+                return response.json()
+            except Exception as e:
+                logger.error(f"RapidAPI Movie DB error: {e}")
+                return {"Response": "False", "Error": str(e)}
+
+
 # Initialize all clients
 tmdb_client = TMDBClient()
 omdb_client = OMDBClient()
 mdblist_client = MDBListClient()
 fanart_client = FanartClient()
 filepursuit_client = FilePursuitClient()
+rapidapi_movie_db = RapidAPIMovieDB()
