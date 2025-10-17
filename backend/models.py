@@ -109,7 +109,17 @@ class ChangePassword(BaseModel):
 
 class ConnectService(BaseModel):
     service_name: str  # 'trakt', 'tmdb', 'omdb', 'imdb', 'real_debrid', etc.
-    api_key: str
+    api_key: Optional[str] = None
+    access_token: Optional[str] = None
+
+
+class DisconnectService(BaseModel):
+    service_name: str
+
+
+class ToggleRepository(BaseModel):
+    repository_id: str
+    enabled: bool
 
 
 class AddRepository(BaseModel):
