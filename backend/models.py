@@ -376,10 +376,7 @@ class CreateProfile(BaseModel):
     maturity_rating: str = "all"
 
 
-class UpdateProfile(BaseModel):
-    name: Optional[str] = None
-    avatar: Optional[str] = None
-    pin: Optional[str] = None
+# Removed duplicate UpdateProfile class - using the one at line 190
 
 
 class ParentalControls(BaseModel):
