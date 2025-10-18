@@ -1929,7 +1929,7 @@ async def delete_profile(
 
 @api_router.post("/content/request-approval")
 async def request_content_approval(
-    approval_request: ContentApprovalRequest,
+    approval_request: ContentApprovalRequestCreate,
     current_user: TokenData = Depends(get_current_user)
 ):
     """Child requests parent approval for restricted content"""
