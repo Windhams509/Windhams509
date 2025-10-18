@@ -739,6 +739,589 @@ class StreamFlixTester:
             except Exception as e:
                 self.log_result("Repository - Delete Non-existent", False, f"Exception: {str(e)}")
 
+    async def test_password_reset_endpoints(self):
+        """Test password reset functionality"""
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            # Test forgot password
+            try:
+                forgot_data = {"email": self.test_user_email}
+                response = await client.post(f"{self.base_url}/auth/forgot-password", json=forgot_data)
+                if response.status_code == 200:
+                    data = response.json()
+                    reset_token = data.get("reset_token")  # In production this would be sent via email
+                    self.log_result("Password Reset - Forgot Password", True, "Reset token generated")
+                    
+                    # Test reset password with token
+                    if reset_token:
+                        try:
+                            reset_data = {
+                                "token": reset_token,
+                                "new_password": "NewResetPassword123!"
+                            }
+                            response = await client.post(f"{self.base_url}/auth/reset-password", json=reset_data)
+                            if response.status_code == 200:
+                                self.log_result("Password Reset - Reset Password", True, "Password reset successfully")
+                                # Update our stored password
+                                self.test_user_password = "NewResetPassword123!"
+                            else:
+                                self.log_result("Password Reset - Reset Password", False, f"Status: {response.status_code}", response.text)
+                        except Exception as e:
+                            self.log_result("Password Reset - Reset Password", False, f"Exception: {str(e)}")
+                else:
+                    self.log_result("Password Reset - Forgot Password", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("Password Reset - Forgot Password", False, f"Exception: {str(e)}")
+
+    async def test_2fa_endpoints(self):
+        """Test 2FA functionality"""
+        if not self.auth_token:
+            self.log_result("2FA Tests", False, "No auth token available")
+            return
+            
+        headers = {"Authorization": f"Bearer {self.auth_token}"}
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            
+            # Test enable 2FA with email method
+            try:
+                enable_data = {
+                    "method": "email"
+                }
+                response = await client.post(f"{self.base_url}/user/2fa/enable", json=enable_data, headers=headers)
+                if response.status_code == 200:
+                    data = response.json()
+                    backup_codes = data.get("backup_codes", [])
+                    self.log_result("2FA - Enable Email 2FA", True, f"2FA enabled with {len(backup_codes)} backup codes")
+                    
+                    # Test verify 2FA with backup code
+                    if backup_codes:
+                        try:
+                            verify_data = {"code": backup_codes[0]}
+                            response = await client.post(f"{self.base_url}/user/2fa/verify", json=verify_data, headers=headers)
+                            if response.status_code == 200:
+                                self.log_result("2FA - Verify Backup Code", True, "Backup code verified successfully")
+                            else:
+                                self.log_result("2FA - Verify Backup Code", False, f"Status: {response.status_code}", response.text)
+                        except Exception as e:
+                            self.log_result("2FA - Verify Backup Code", False, f"Exception: {str(e)}")
+                else:
+                    self.log_result("2FA - Enable Email 2FA", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("2FA - Enable Email 2FA", False, f"Exception: {str(e)}")
+
+            # Test get 2FA status
+            try:
+                response = await client.get(f"{self.base_url}/user/2fa/status", headers=headers)
+                if response.status_code == 200:
+                    data = response.json()
+                    enabled = data.get("enabled", False)
+                    method = data.get("method", "none")
+                    self.log_result("2FA - Get Status", True, f"2FA enabled: {enabled}, method: {method}")
+                else:
+                    self.log_result("2FA - Get Status", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("2FA - Get Status", False, f"Exception: {str(e)}")
+
+            # Test disable 2FA
+            try:
+                response = await client.post(f"{self.base_url}/user/2fa/disable", headers=headers)
+                if response.status_code == 200:
+                    self.log_result("2FA - Disable 2FA", True, "2FA disabled successfully")
+                else:
+                    self.log_result("2FA - Disable 2FA", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("2FA - Disable 2FA", False, f"Exception: {str(e)}")
+
+    async def test_google_oauth_endpoints(self):
+        """Test Google OAuth functionality"""
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            # Test Google OAuth login (simplified test)
+            try:
+                oauth_data = {
+                    "id_token": f"google_user_{uuid.uuid4().hex[:8]}@gmail.com",  # Simplified for testing
+                    "remember_me": True
+                }
+                response = await client.post(f"{self.base_url}/auth/google", json=oauth_data)
+                if response.status_code == 200:
+                    data = response.json()
+                    access_token = data.get("access_token")
+                    remember_token = data.get("remember_token")
+                    self.log_result("Google OAuth - Login", True, f"OAuth login successful, remember token: {bool(remember_token)}")
+                    
+                    # Test remember me login
+                    if remember_token:
+                        try:
+                            response = await client.post(f"{self.base_url}/auth/remember-me", json={"remember_token": remember_token})
+                            if response.status_code == 200:
+                                self.log_result("Google OAuth - Remember Me", True, "Remember me login successful")
+                            else:
+                                self.log_result("Google OAuth - Remember Me", False, f"Status: {response.status_code}", response.text)
+                        except Exception as e:
+                            self.log_result("Google OAuth - Remember Me", False, f"Exception: {str(e)}")
+                else:
+                    self.log_result("Google OAuth - Login", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("Google OAuth - Login", False, f"Exception: {str(e)}")
+
+    async def test_user_preferences_endpoints(self):
+        """Test user preferences endpoints"""
+        if not self.auth_token:
+            self.log_result("User Preferences", False, "No auth token available")
+            return
+            
+        headers = {"Authorization": f"Bearer {self.auth_token}"}
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            
+            # Test update subtitle settings
+            try:
+                subtitle_data = {
+                    "subtitle_language": "en",
+                    "subtitle_size": "large",
+                    "subtitle_color": "#FFFFFF",
+                    "auto_load_subtitles": True
+                }
+                response = await client.put(f"{self.base_url}/user/preferences/subtitles", json=subtitle_data, headers=headers)
+                if response.status_code == 200:
+                    self.log_result("Preferences - Update Subtitles", True, "Subtitle settings updated")
+                else:
+                    self.log_result("Preferences - Update Subtitles", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("Preferences - Update Subtitles", False, f"Exception: {str(e)}")
+
+            # Test update playback settings
+            try:
+                playback_data = {
+                    "default_quality": "1080p",
+                    "autoplay_next": True,
+                    "skip_intro_duration": 90,
+                    "hardware_acceleration": True
+                }
+                response = await client.put(f"{self.base_url}/user/preferences/playback", json=playback_data, headers=headers)
+                if response.status_code == 200:
+                    self.log_result("Preferences - Update Playback", True, "Playback settings updated")
+                else:
+                    self.log_result("Preferences - Update Playback", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("Preferences - Update Playback", False, f"Exception: {str(e)}")
+
+            # Test update browser settings
+            try:
+                browser_data = {
+                    "preferred_browser": "firefox",
+                    "enable_tab_grouping": True,
+                    "open_links_in_new_tab": False
+                }
+                response = await client.put(f"{self.base_url}/user/preferences/browser", json=browser_data, headers=headers)
+                if response.status_code == 200:
+                    self.log_result("Preferences - Update Browser", True, "Browser settings updated")
+                else:
+                    self.log_result("Preferences - Update Browser", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("Preferences - Update Browser", False, f"Exception: {str(e)}")
+
+            # Test get all preferences
+            try:
+                response = await client.get(f"{self.base_url}/user/preferences", headers=headers)
+                if response.status_code == 200:
+                    data = response.json()
+                    categories = list(data.keys())
+                    self.log_result("Preferences - Get All", True, f"Retrieved preferences for: {', '.join(categories)}")
+                else:
+                    self.log_result("Preferences - Get All", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("Preferences - Get All", False, f"Exception: {str(e)}")
+
+    async def test_family_profiles_endpoints(self):
+        """Test family profiles and parental controls"""
+        if not self.auth_token:
+            self.log_result("Family Profiles", False, "No auth token available")
+            return
+            
+        headers = {"Authorization": f"Bearer {self.auth_token}"}
+        profile_id = None
+        
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            
+            # Test create child profile
+            try:
+                profile_data = {
+                    "name": "Kids Profile",
+                    "is_child": True,
+                    "age": 8,
+                    "pin": "1234",
+                    "maturity_rating": "G"
+                }
+                response = await client.post(f"{self.base_url}/profiles", json=profile_data, headers=headers)
+                if response.status_code == 200:
+                    data = response.json()
+                    profile_id = data.get("profile_id")
+                    self.log_result("Profiles - Create Child Profile", True, f"Profile created with ID: {profile_id}")
+                else:
+                    self.log_result("Profiles - Create Child Profile", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("Profiles - Create Child Profile", False, f"Exception: {str(e)}")
+
+            # Test get all profiles
+            try:
+                response = await client.get(f"{self.base_url}/profiles", headers=headers)
+                if response.status_code == 200:
+                    data = response.json()
+                    profiles = data.get("profiles", [])
+                    self.log_result("Profiles - Get All Profiles", True, f"Found {len(profiles)} profiles")
+                    
+                    # Get profile ID if we don't have one
+                    if not profile_id and profiles:
+                        profile_id = profiles[0].get("id")
+                else:
+                    self.log_result("Profiles - Get All Profiles", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("Profiles - Get All Profiles", False, f"Exception: {str(e)}")
+
+            if profile_id:
+                # Test update parental controls
+                try:
+                    controls_data = {
+                        "maturity_rating": "PG",
+                        "allowed_genres": ["Animation", "Family", "Adventure"],
+                        "blocked_content": ["tt1234567"]
+                    }
+                    response = await client.put(f"{self.base_url}/profiles/{profile_id}/parental-controls", json=controls_data, headers=headers)
+                    if response.status_code == 200:
+                        self.log_result("Profiles - Update Parental Controls", True, "Parental controls updated")
+                    else:
+                        self.log_result("Profiles - Update Parental Controls", False, f"Status: {response.status_code}", response.text)
+                except Exception as e:
+                    self.log_result("Profiles - Update Parental Controls", False, f"Exception: {str(e)}")
+
+                # Test update screen time settings
+                try:
+                    screen_time_data = {
+                        "screen_time_enabled": True,
+                        "daily_limit_minutes": 120,
+                        "allowed_start_time": "08:00",
+                        "allowed_end_time": "20:00"
+                    }
+                    response = await client.put(f"{self.base_url}/profiles/{profile_id}/screen-time", json=screen_time_data, headers=headers)
+                    if response.status_code == 200:
+                        self.log_result("Profiles - Update Screen Time", True, "Screen time settings updated")
+                    else:
+                        self.log_result("Profiles - Update Screen Time", False, f"Status: {response.status_code}", response.text)
+                except Exception as e:
+                    self.log_result("Profiles - Update Screen Time", False, f"Exception: {str(e)}")
+
+                # Test get screen time status
+                try:
+                    response = await client.get(f"{self.base_url}/profiles/{profile_id}/screen-time/status", headers=headers)
+                    if response.status_code == 200:
+                        data = response.json()
+                        allowed = data.get("allowed", False)
+                        remaining = data.get("remaining_minutes", 0)
+                        self.log_result("Profiles - Screen Time Status", True, f"Allowed: {allowed}, Remaining: {remaining} min")
+                    else:
+                        self.log_result("Profiles - Screen Time Status", False, f"Status: {response.status_code}", response.text)
+                except Exception as e:
+                    self.log_result("Profiles - Screen Time Status", False, f"Exception: {str(e)}")
+
+                # Test get profile activity
+                try:
+                    response = await client.get(f"{self.base_url}/profiles/{profile_id}/activity", headers=headers)
+                    if response.status_code == 200:
+                        data = response.json()
+                        activities = data.get("activities", [])
+                        self.log_result("Profiles - Get Activity", True, f"Found {len(activities)} activity records")
+                    else:
+                        self.log_result("Profiles - Get Activity", False, f"Status: {response.status_code}", response.text)
+                except Exception as e:
+                    self.log_result("Profiles - Get Activity", False, f"Exception: {str(e)}")
+
+    async def test_content_approval_endpoints(self):
+        """Test content approval system"""
+        if not self.auth_token:
+            self.log_result("Content Approval", False, "No auth token available")
+            return
+            
+        headers = {"Authorization": f"Bearer {self.auth_token}"}
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            
+            # Test request content approval
+            try:
+                approval_data = {
+                    "content_id": "tt1234567",
+                    "content_type": "movie",
+                    "title": "Test Movie",
+                    "requested_by_profile": "child_profile_id",
+                    "reason": "Want to watch with family"
+                }
+                response = await client.post(f"{self.base_url}/content/request-approval", json=approval_data, headers=headers)
+                if response.status_code == 200:
+                    self.log_result("Content Approval - Request", True, "Approval request submitted")
+                else:
+                    self.log_result("Content Approval - Request", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("Content Approval - Request", False, f"Exception: {str(e)}")
+
+            # Test get approval requests
+            try:
+                response = await client.get(f"{self.base_url}/content/approval-requests", headers=headers)
+                if response.status_code == 200:
+                    data = response.json()
+                    requests = data.get("requests", [])
+                    self.log_result("Content Approval - Get Requests", True, f"Found {len(requests)} approval requests")
+                else:
+                    self.log_result("Content Approval - Get Requests", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("Content Approval - Get Requests", False, f"Exception: {str(e)}")
+
+            # Test approval response
+            try:
+                response_data = {
+                    "request_id": "test_request_id",
+                    "approved": True,
+                    "parent_notes": "Approved for weekend viewing"
+                }
+                response = await client.post(f"{self.base_url}/content/approval-response", json=response_data, headers=headers)
+                if response.status_code == 200:
+                    self.log_result("Content Approval - Response", True, "Approval response submitted")
+                else:
+                    self.log_result("Content Approval - Response", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("Content Approval - Response", False, f"Exception: {str(e)}")
+
+            # Test get notifications
+            try:
+                response = await client.get(f"{self.base_url}/notifications", headers=headers)
+                if response.status_code == 200:
+                    data = response.json()
+                    notifications = data.get("notifications", [])
+                    self.log_result("Content Approval - Notifications", True, f"Found {len(notifications)} notifications")
+                else:
+                    self.log_result("Content Approval - Notifications", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("Content Approval - Notifications", False, f"Exception: {str(e)}")
+
+    async def test_downloads_endpoints(self):
+        """Test downloads functionality"""
+        if not self.auth_token:
+            self.log_result("Downloads", False, "No auth token available")
+            return
+            
+        headers = {"Authorization": f"Bearer {self.auth_token}"}
+        download_id = None
+        
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            
+            # Test add download
+            try:
+                download_data = {
+                    "content_id": "550",
+                    "content_type": "movie",
+                    "title": "Fight Club",
+                    "quality": "1080p",
+                    "poster_path": "/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg",
+                    "file_url": "https://example.com/movie.mp4"
+                }
+                response = await client.post(f"{self.base_url}/downloads/add", json=download_data, headers=headers)
+                if response.status_code == 200:
+                    data = response.json()
+                    download_id = data.get("download_id")
+                    self.log_result("Downloads - Add Download", True, f"Download added with ID: {download_id}")
+                else:
+                    self.log_result("Downloads - Add Download", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("Downloads - Add Download", False, f"Exception: {str(e)}")
+
+            # Test get all downloads
+            try:
+                response = await client.get(f"{self.base_url}/downloads", headers=headers)
+                if response.status_code == 200:
+                    data = response.json()
+                    downloads = data.get("downloads", [])
+                    total_count = data.get("total_count", 0)
+                    self.log_result("Downloads - Get All", True, f"Found {total_count} downloads")
+                else:
+                    self.log_result("Downloads - Get All", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("Downloads - Get All", False, f"Exception: {str(e)}")
+
+            # Test get completed downloads
+            try:
+                response = await client.get(f"{self.base_url}/downloads/completed", headers=headers)
+                if response.status_code == 200:
+                    data = response.json()
+                    downloads = data.get("downloads", [])
+                    self.log_result("Downloads - Get Completed", True, f"Found {len(downloads)} completed downloads")
+                else:
+                    self.log_result("Downloads - Get Completed", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("Downloads - Get Completed", False, f"Exception: {str(e)}")
+
+    async def test_admin_endpoints(self):
+        """Test admin dashboard endpoints"""
+        if not self.auth_token:
+            self.log_result("Admin Dashboard", False, "No auth token available")
+            return
+            
+        headers = {"Authorization": f"Bearer {self.auth_token}"}
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            
+            # Test get admin stats
+            try:
+                response = await client.get(f"{self.base_url}/admin/stats", headers=headers)
+                if response.status_code == 200:
+                    data = response.json()
+                    self.log_result("Admin - Get Stats", True, "Admin stats retrieved")
+                else:
+                    self.log_result("Admin - Get Stats", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("Admin - Get Stats", False, f"Exception: {str(e)}")
+
+            # Test create coupon
+            try:
+                coupon_data = {
+                    "code": "TEST50",
+                    "discount_percent": 50,
+                    "expires_at": "2024-12-31T23:59:59Z",
+                    "max_uses": 100
+                }
+                response = await client.post(f"{self.base_url}/admin/coupons", json=coupon_data, headers=headers)
+                if response.status_code == 200:
+                    self.log_result("Admin - Create Coupon", True, "Coupon created successfully")
+                else:
+                    self.log_result("Admin - Create Coupon", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("Admin - Create Coupon", False, f"Exception: {str(e)}")
+
+            # Test get coupons
+            try:
+                response = await client.get(f"{self.base_url}/admin/coupons", headers=headers)
+                if response.status_code == 200:
+                    data = response.json()
+                    coupons = data.get("coupons", [])
+                    self.log_result("Admin - Get Coupons", True, f"Found {len(coupons)} coupons")
+                else:
+                    self.log_result("Admin - Get Coupons", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("Admin - Get Coupons", False, f"Exception: {str(e)}")
+
+            # Test create promotional sale
+            try:
+                sale_data = {
+                    "title": "Black Friday Sale",
+                    "discount_percent": 75,
+                    "starts_at": "2024-11-29T00:00:00Z",
+                    "ends_at": "2024-12-02T23:59:59Z"
+                }
+                response = await client.post(f"{self.base_url}/admin/sales", json=sale_data, headers=headers)
+                if response.status_code == 200:
+                    self.log_result("Admin - Create Sale", True, "Promotional sale created")
+                else:
+                    self.log_result("Admin - Create Sale", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("Admin - Create Sale", False, f"Exception: {str(e)}")
+
+            # Test get active sales
+            try:
+                response = await client.get(f"{self.base_url}/sales/active", headers=headers)
+                if response.status_code == 200:
+                    data = response.json()
+                    sales = data.get("sales", [])
+                    self.log_result("Admin - Get Active Sales", True, f"Found {len(sales)} active sales")
+                else:
+                    self.log_result("Admin - Get Active Sales", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("Admin - Get Active Sales", False, f"Exception: {str(e)}")
+
+    async def test_content_discovery_extended(self):
+        """Test extended content discovery endpoints"""
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            
+            # Test get trending content
+            try:
+                response = await client.get(f"{self.base_url}/content/trending")
+                if response.status_code == 200:
+                    data = response.json()
+                    results = data.get("results", [])
+                    self.log_result("Content Discovery - Trending", True, f"Found {len(results)} trending items")
+                else:
+                    self.log_result("Content Discovery - Trending", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("Content Discovery - Trending", False, f"Exception: {str(e)}")
+
+            # Test get recommendations
+            try:
+                response = await client.get(f"{self.base_url}/content/recommendations")
+                if response.status_code == 200:
+                    data = response.json()
+                    results = data.get("results", [])
+                    self.log_result("Content Discovery - Recommendations", True, f"Found {len(results)} recommendations")
+                else:
+                    self.log_result("Content Discovery - Recommendations", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("Content Discovery - Recommendations", False, f"Exception: {str(e)}")
+
+            # Test continue watching
+            try:
+                response = await client.get(f"{self.base_url}/content/continue-watching")
+                if response.status_code == 200:
+                    data = response.json()
+                    results = data.get("results", [])
+                    self.log_result("Content Discovery - Continue Watching", True, f"Found {len(results)} continue watching items")
+                else:
+                    self.log_result("Content Discovery - Continue Watching", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("Content Discovery - Continue Watching", False, f"Exception: {str(e)}")
+
+            # Test seasonal content
+            try:
+                response = await client.get(f"{self.base_url}/content/seasonal")
+                if response.status_code == 200:
+                    data = response.json()
+                    results = data.get("results", [])
+                    self.log_result("Content Discovery - Seasonal", True, f"Found {len(results)} seasonal items")
+                else:
+                    self.log_result("Content Discovery - Seasonal", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("Content Discovery - Seasonal", False, f"Exception: {str(e)}")
+
+    async def test_device_auth_endpoints(self):
+        """Test device authentication endpoints"""
+        if not self.auth_token:
+            self.log_result("Device Auth", False, "No auth token available")
+            return
+            
+        headers = {"Authorization": f"Bearer {self.auth_token}"}
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            
+            # Test start device auth
+            try:
+                device_data = {"service_name": "trakt"}
+                response = await client.post(f"{self.base_url}/user/device-auth/start", json=device_data, headers=headers)
+                if response.status_code == 200:
+                    data = response.json()
+                    device_code = data.get("device_code")
+                    user_code = data.get("user_code")
+                    self.log_result("Device Auth - Start", True, f"Device code generated, user code: {user_code}")
+                    
+                    # Test poll device auth
+                    if device_code:
+                        try:
+                            poll_data = {
+                                "device_code": device_code,
+                                "service_name": "trakt"
+                            }
+                            response = await client.post(f"{self.base_url}/user/device-auth/poll", json=poll_data, headers=headers)
+                            if response.status_code == 200:
+                                data = response.json()
+                                status = data.get("status")
+                                self.log_result("Device Auth - Poll", True, f"Poll status: {status}")
+                            else:
+                                self.log_result("Device Auth - Poll", False, f"Status: {response.status_code}", response.text)
+                        except Exception as e:
+                            self.log_result("Device Auth - Poll", False, f"Exception: {str(e)}")
+                else:
+                    self.log_result("Device Auth - Start", False, f"Status: {response.status_code}", response.text)
+            except Exception as e:
+                self.log_result("Device Auth - Start", False, f"Exception: {str(e)}")
+
     async def test_error_handling(self):
         """Test error handling for invalid requests"""
         async with httpx.AsyncClient(timeout=30.0) as client:
