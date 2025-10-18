@@ -380,14 +380,12 @@ class CreateProfile(BaseModel):
 
 
 class ParentalControls(BaseModel):
-    profile_id: str
     maturity_rating: Optional[str] = None
     allowed_genres: Optional[List[str]] = None
     blocked_content: Optional[List[str]] = None
 
 
 class ScreenTimeSettings(BaseModel):
-    profile_id: str
     screen_time_enabled: Optional[bool] = None
     daily_limit_minutes: Optional[int] = None
     allowed_start_time: Optional[str] = None
