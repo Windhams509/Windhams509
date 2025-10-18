@@ -1936,7 +1936,7 @@ async def request_content_approval(
     try:
         # Check if already has pending request for same content
         existing = await db.approval_requests.find_one({
-            "profile_id": approval_request.profile_id,
+            "profile_id": approval_request.requested_by_profile,
             "content_id": approval_request.content_id,
             "status": "pending"
         })
@@ -1948,29 +1948,38 @@ async def request_content_approval(
                 "status": "pending"
             }
         
-        # Set expiration (24 hours)
+        # Create full approval request object
         from datetime import timedelta
-        approval_request.expires_at = datetime.now(timezone.utc) + timedelta(hours=24)
+        full_request = ContentApprovalRequest(
+            user_id=current_user.user_id,
+            profile_id=approval_request.requested_by_profile,
+            content_id=approval_request.content_id,
+            content_title=approval_request.title,
+            content_type=approval_request.content_type,
+            maturity_rating="PG-13",  # Default for demo
+            reason=approval_request.reason or "maturity_rating",
+            expires_at=datetime.now(timezone.utc) + timedelta(hours=24)
+        )
         
         # Create approval request
-        await db.approval_requests.insert_one(approval_request.model_dump())
+        await db.approval_requests.insert_one(full_request.model_dump())
         
         # Create notification for parent
         notification = ParentNotification(
-            user_id=approval_request.user_id,
-            profile_id=approval_request.profile_id,
+            user_id=current_user.user_id,
+            profile_id=approval_request.requested_by_profile,
             notification_type="content_request",
             title="Content Approval Request",
-            message=f"Your child wants to watch '{approval_request.content_title}' (Rated: {approval_request.maturity_rating})",
+            message=f"Your child wants to watch '{approval_request.title}' (Rated: PG-13)",
             content_id=approval_request.content_id,
-            request_id=approval_request.id
+            request_id=full_request.id
         )
         
         await db.parent_notifications.insert_one(notification.model_dump())
         
         return {
             "message": "Approval request sent to parent",
-            "request_id": approval_request.id,
+            "request_id": full_request.id,
             "status": "pending",
             "info": "Your parent will be notified. You can check back later."
         }
