@@ -26,7 +26,7 @@ from models import (
     DownloadRequest, Download, DownloadUpdate,
     Profile, CreateProfile, ParentalControls, ScreenTimeSettings, 
     ScreenTimeLog, ProfileActivity,
-    ContentApprovalRequest, ApprovalResponse, ParentNotification,
+    ContentApprovalRequest, ContentApprovalRequestCreate, ApprovalResponse, ParentNotification,
     ForgotPasswordRequest, ResetPasswordRequest, Enable2FA, Verify2FA, TwoFactorSettings,
     GoogleOAuthLogin, SubscriptionPlan, Coupon, PromotionalSale
 )
