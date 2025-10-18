@@ -1368,6 +1368,13 @@ class StreamFlixTester:
         # Streaming sources
         await self.test_streaming_sources()
         
+        # Password reset and 2FA (before login)
+        await self.test_password_reset_endpoints()
+        await self.test_google_oauth_endpoints()
+        
+        # Extended content discovery
+        await self.test_content_discovery_extended()
+        
         # Authenticated endpoints (only if we have a token)
         if self.auth_token:
             await self.test_watchlist_operations()
@@ -1375,10 +1382,31 @@ class StreamFlixTester:
             await self.test_watch_history_operations()
             await self.test_adult_pin_operations()
             
+            # 2FA tests (requires auth)
+            await self.test_2fa_endpoints()
+            
             # NEW SETTINGS SYSTEM TESTS
             await self.test_user_settings_endpoints()
             await self.test_external_services_endpoints()
             await self.test_repository_system_endpoints()
+            
+            # User preferences
+            await self.test_user_preferences_endpoints()
+            
+            # Family profiles and parental controls
+            await self.test_family_profiles_endpoints()
+            
+            # Content approval system
+            await self.test_content_approval_endpoints()
+            
+            # Downloads functionality
+            await self.test_downloads_endpoints()
+            
+            # Device authentication
+            await self.test_device_auth_endpoints()
+            
+            # Admin dashboard (if user has admin rights)
+            await self.test_admin_endpoints()
         
         # Error handling
         await self.test_error_handling()
