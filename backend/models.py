@@ -437,6 +437,14 @@ class ContentApprovalRequest(BaseModel):
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
+# Simplified request model for API
+class ContentApprovalRequestCreate(BaseModel):
+    content_id: str
+    content_type: str  # movie, tv, episode
+    title: str
+    requested_by_profile: str
+    reason: Optional[str] = None
+
 class ApprovalResponse(BaseModel):
     request_id: str
     action: str  # "approve", "deny"
