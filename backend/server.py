@@ -90,11 +90,16 @@ async def register(user_data: UserCreate):
             detail="Email already registered"
         )
     
+    # Check if this is the first user (make them admin)
+    user_count = await db.users.count_documents({})
+    is_first_user = user_count == 0
+    
     # Create new user
     user = User(
         email=user_data.email,
         name=user_data.name,
-        hashed_password=hash_password(user_data.password)
+        hashed_password=hash_password(user_data.password),
+        is_admin=is_first_user  # First user is automatically admin
     )
     
     await db.users.insert_one(user.model_dump())
