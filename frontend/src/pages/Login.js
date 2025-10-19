@@ -42,6 +42,52 @@ const Login = () => {
     }
   };
 
+
+  const handleGoogleLogin = async () => {
+    setError('');
+    setLoading(true);
+    try {
+      // In production, this would use actual Google OAuth
+      // For now, showing the concept
+      setError('Google OAuth will be fully integrated in production. Please use email/password for now.');
+    } catch (err) {
+      setError('Google sign-in failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+    setLoading(true);
+    
+    try {
+      // Send password reset request
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/auth/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: resetEmail })
+      });
+      
+      if (response.ok) {
+        setSuccess('Password reset link sent! Check your email.');
+        setTimeout(() => {
+          setShowForgotPassword(false);
+          setSuccess('');
+        }, 3000);
+      } else {
+        setError('Failed to send reset link');
+      }
+    } catch (err) {
+      setError('An error occurred. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black">
       <div className="max-w-md w-full mx-4">
